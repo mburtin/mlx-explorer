@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { exists, resolveProjectPath } from "../../common/files";
 import { block, fileValue, hasSection, quotedValue, section } from "../../common/mlxtran";
+import { DeclaredFile } from "../index";
 
 function identifies(content: string): boolean {
   return hasSection(content, "MONOLIX");
@@ -14,6 +15,8 @@ export const TOOL = {
   extension: ".mlxtran",
   identifies,
   openCommand: "mlxSuite.openRun",
+  exportPath: parseExportPath,
+  userFiles,
 };
 
 export function parseExportPath(content: string): string | undefined {
@@ -33,6 +36,23 @@ export function parseModelFile(content: string): string | undefined {
   const longitudinal = block(model, "LONGITUDINAL");
   return longitudinal === undefined ? undefined : fileValue(longitudinal);
 }
+
+function userFiles(content: string): DeclaredFile[] {
+  const files: DeclaredFile[] = [];
+
+  const model = parseModelFile(content);
+  if (model !== undefined && !model.startsWith("lib:")) {
+    files.push({ declared: model, folder: "ModelFile" });
+  }
+
+  const data = parseDataFile(content);
+  if (data !== undefined) {
+    files.push({ declared: data, folder: "DataFile" });
+  }
+
+  return files;
+}
+
 
 export function resultsFolder(
   projectUri: vscode.Uri,

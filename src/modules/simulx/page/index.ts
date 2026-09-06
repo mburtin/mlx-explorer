@@ -5,6 +5,7 @@ import { renderModel } from "./modelTab";
 import { renderOutputs } from "./outputsSection";
 import { renderParameters } from "./parametersSection";
 import { renderTreatments } from "./treatmentsSection";
+import { renderSettings } from "../../../projectSettings";
 
 export const STYLESHEETS = [
   "theme.css",
@@ -20,15 +21,18 @@ function renderOpenButton(projectUri: string): string {
   return `<a class="btn-open" href="${escapeHtml(href)}">Open in ${escapeHtml(TOOL.label)}</a>`;
 }
 
+
 function renderEmptyState(): string {
   return `<section class="card empty-state">
     <div>No Simulation group defined in this project.</div>
   </section>`;
 }
 
-function renderTabState(summary: Summary): string {
-  return '<input type="radio" name="tab" id="tab-results" class="tab-state" checked>' +
-    (summary.model ? '<input type="radio" name="tab" id="tab-model" class="tab-state">' : "");
+function renderTabState(summary: Summary, active: string): string {
+  const radio = (id: string) =>
+    `<input type="radio" name="tab" id="tab-${id}" class="tab-state"` +
+    `${active === id ? " checked" : ""}>`;
+  return radio("results") + (summary.model ? radio("model") : "") + radio("settings");
 }
 
 // Data is a link, not a panel. We use Positron DataExplorer to render it.
@@ -37,6 +41,7 @@ function renderNav(summary: Summary): string {
   if (summary.model) {
     tabs.push('<label class="tab" for="tab-model">Model</label>');
   }
+  tabs.push('<label class="tab" for="tab-settings">Settings</label>');
   if (summary.dataUri) {
     const args = encodeURIComponent(JSON.stringify([summary.dataUri]));
     tabs.push(`<a class="tab" href="${escapeHtml(`command:mlxSuite.openData?${args}`)}">Data</a>`);
@@ -44,7 +49,11 @@ function renderNav(summary: Summary): string {
   return `<nav>${tabs.join("")}</nav>`;
 }
 
-export function renderSummaryPage(summary: Summary, assets: WebviewAssets): string {
+export function renderSummaryPage(
+  summary: Summary,
+  assets: WebviewAssets,
+  active = "results"
+): string {
   const summaryContent = summary.hasSimulation
     ? renderParameters(summary.parameterSets) +
       renderTreatments(summary.treatments) +
@@ -53,9 +62,10 @@ export function renderSummaryPage(summary: Summary, assets: WebviewAssets): stri
 
   const panels =
     `<div class="panel" id="panel-results">${summaryContent}</div>` +
-    (summary.model ? `<div class="panel" id="panel-model">${renderModel(summary.model)}</div>` : "");
+    (summary.model ? `<div class="panel" id="panel-model">${renderModel(summary.model)}</div>` : "") +
+    `<div class="panel" id="panel-settings">${renderSettings(summary.settings)}</div>`;
 
-  const body = `  ${renderTabState(summary)}
+  const body = `  ${renderTabState(summary, active)}
   <div class="brand-rule"></div>
   <header>
     <div class="title-row">

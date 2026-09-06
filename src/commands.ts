@@ -22,40 +22,47 @@ function assetsFor(
 // Opens the run page for a project
 export async function openRunPage(
   extensionUri: vscode.Uri,
-  projectUri: vscode.Uri
+  projectUri: vscode.Uri,
+  activeTab?: string
 ): Promise<void> {
   const run = await readRun(projectUri);
 
   const panel = showPanel(projectUri.toString(), () =>
     vscode.window.createWebviewPanel("mlxSuite.run", run.name, vscode.ViewColumn.Active, {
       enableFindWidget: true,
-      enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData"],
+      enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
       // The stylesheets live in styles/: nothing else is reachable from the page.
       localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
     })
   );
 
-  panel.webview.html = renderRunPage(run, assetsFor(panel.webview, extensionUri, MONOLIX_STYLESHEETS));
+  panel.webview.html = renderRunPage(
+    run,
+    assetsFor(panel.webview, extensionUri, MONOLIX_STYLESHEETS),
+    activeTab
+  );
 }
 
 // Opens the summary page for a Simulx project
 export async function openSummaryPage(
   extensionUri: vscode.Uri,
-  projectUri: vscode.Uri
+  projectUri: vscode.Uri,
+  activeTab?: string
 ): Promise<void> {
   const summary = await readSummary(projectUri);
 
   const panel = showPanel(projectUri.toString(), () =>
     vscode.window.createWebviewPanel("mlxSuite.summary", summary.name, vscode.ViewColumn.Active, {
       enableFindWidget: true,
-      enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData"],
+      enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
       localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
     })
   );
 
   panel.webview.html = renderSummaryPage(
     summary,
-    assetsFor(panel.webview, extensionUri, SIMULX_STYLESHEETS)
+    assetsFor(panel.webview, extensionUri, SIMULX_STYLESHEETS),
+    activeTab
   );
 }
 

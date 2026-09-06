@@ -1,12 +1,13 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { readText } from "../../common/files";
+import { readSettings, Settings } from "../../projectSettings";
 import { block, label, section } from "../../common/mlxtran";
 import { ModelFile, readModel } from "./page/modelTab";
 import { OutputDef, readOutputs } from "./page/outputsSection";
 import { ParameterSet, readParameters } from "./page/parametersSection";
 import { Treatment, readTreatments } from "./page/treatmentsSection";
-import { resolveDataFile } from "./project";
+import { resolveDataFile, TOOL } from "./project";
 
 /** What the Summary page shows: the "Simulations" definition, `[EXPLORATION]` left untouched. */
 export interface Summary {
@@ -20,6 +21,8 @@ export interface Summary {
   treatments: Treatment[];
   outputs: OutputDef[];
   model?: ModelFile;
+  /** Always present: the tab reports even when the project points at nothing. */
+  settings: Settings;
   /** The project's external dataset, set only when the declared file is on disk. */
   dataUri?: string;
 }
@@ -44,6 +47,7 @@ export async function readSummary(projectUri: vscode.Uri): Promise<Summary> {
     treatments: content === undefined ? [] : readTreatments(content),
     outputs: content === undefined ? [] : readOutputs(content),
     model: content === undefined ? undefined : await readModel(projectUri, content),
+    settings: await readSettings(projectUri, content, TOOL),
     dataUri: content === undefined ? undefined : await resolveDataFile(projectUri, content, name),
   };
 }

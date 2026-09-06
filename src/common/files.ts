@@ -19,6 +19,11 @@ export async function readText(uri: vscode.Uri): Promise<string | undefined> {
   }
 }
 
+/** Writes a file back, creating it when it does not exist yet. */
+export async function writeText(uri: vscode.Uri, text: string): Promise<void> {
+  await vscode.workspace.fs.writeFile(uri, new TextEncoder().encode(text));
+}
+
 export async function readTable(uri: vscode.Uri): Promise<Table | undefined> {
   const text = await readText(uri);
   return text === undefined ? undefined : parseTable(text);

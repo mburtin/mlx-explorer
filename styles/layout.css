@@ -52,13 +52,15 @@ a.tab:hover { color: var(--vscode-foreground); }
    ring and stays operable with the arrow keys. */
 .tab-state { position: absolute; width: 1px; height: 1px; opacity: 0; }
 #tab-results:checked ~ header label[for="tab-results"],
-#tab-model:checked ~ header label[for="tab-model"] {
+#tab-model:checked ~ header label[for="tab-model"],
+#tab-settings:checked ~ header label[for="tab-settings"] {
   font-weight: 600;
   color: var(--vscode-foreground);
   border-bottom: 2px solid var(--mlx-accent);
 }
 #tab-results:focus-visible ~ header label[for="tab-results"],
-#tab-model:focus-visible ~ header label[for="tab-model"] {
+#tab-model:focus-visible ~ header label[for="tab-model"],
+#tab-settings:focus-visible ~ header label[for="tab-settings"] {
   outline: 1px solid var(--mlx-accent);
   outline-offset: 3px;
 }
@@ -67,4 +69,5 @@ main { padding: 18px 28px 28px 28px; }
 /* The panels are stacked and hidden; the checked radio above reveals one. */
 .panel { display: none; flex-direction: column; gap: 16px; }
 #tab-results:checked ~ main #panel-results,
-#tab-model:checked ~ main #panel-model { display: flex; }
+#tab-model:checked ~ main #panel-model,
+#tab-settings:checked ~ main #panel-settings { display: flex; }

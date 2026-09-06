@@ -58,10 +58,57 @@ export function braceBody(content: string, openIndex: number): string | undefine
 }
 
 /**
- * Monolix 2023+ writes file={path='...'}, earlier versions a bare file='...'
+ * A `file` key up to its opening quote.
+ * Monolix 2023+ writes file={path='...'}, earlier versions a bare file='...'.
  */
+const FILE_KEY = "file[ \\t]*=[ \\t]*(?:\\{[ \\t]*path[ \\t]*=[ \\t]*)?'";
+
+/** The path the section's own `file` key points at, the key being a line of its own. */
 export function fileValue(content: string): string | undefined {
-  return /^[ \t]*file[ \t]*=[ \t]*(?:\{[ \t]*path[ \t]*=[ \t]*)?'([^']*)'/m.exec(content)?.[1];
+  return new RegExp(`^[ \\t]*${FILE_KEY}([^']*)'`, "m").exec(content)?.[1];
+}
+
+/**
+ * The path a `file` key nested inside a `'name' = {...}` entry points at. Same key,
+ * without the line anchor: Simulx writes it mid-line, as in
+ * `'Regressors' = {file={path='...'}}`.
+ */
+export function entryFileValue(content: string): string | undefined {
+  return new RegExp(`${FILE_KEY}([^']*)'`).exec(content)?.[1];
+}
+
+/** Escapes a path so it can go into a pattern as a literal. */
+function literal(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Repoints the `file` key whose path is exactly `declared`, leaving the rest of the
+ * declaration alone - Monolix writes `file={path='...', relativePath='true'}`, and the
+ * trailing keys must survive. Keyed on the path rather than on a position, so the other
+ * `file` keys of the project are not touched.
+ */
+export function replaceFileValue(
+  content: string,
+  declared: string,
+  replacement: string
+): string {
+  const pattern = new RegExp(`(${FILE_KEY})${literal(declared)}'`);
+  // Function form: a `$` in the new path would otherwise read as a capture reference.
+  return content.replace(pattern, (_match, key: string) => `${key}${replacement}'`);
+}
+
+/**
+ * Sets a bare `key=value` line in `[SETTINGS] GLOBAL:`, adding it under the marker when
+ * the project does not declare it yet. A project without a `GLOBAL:` marker is returned
+ * unchanged: writing the setting would mean inventing the block that holds it.
+ */
+export function setGlobalSetting(content: string, key: string, value: string): string {
+  const existing = new RegExp(`^${key}[ \\t]*=.*$`, "m");
+  if (existing.test(content)) {
+    return content.replace(existing, `${key}=${value}`);
+  }
+  return content.replace(/^GLOBAL:$/m, (marker) => `${marker}\n${key}=${value}`);
 }
 
 // The value of a quoted `key = '...'` setting

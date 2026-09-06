@@ -1,0 +1,54 @@
+/* The Settings tab: one row per parameter - name, description, state, then the control.
+   It sits in a card like the other tabs, so it brings no frame of its own. */
+
+/* Text on the left, the action on the right edge, centred against the block it acts on. */
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 15px 16px 17px 16px;
+}
+/* min-width lets the block shrink instead of shoving the button off the card. */
+.setting-text { flex: 1; min-width: 0; }
+
+.setting-name {
+  margin-bottom: 6px;
+  font-size: 1em;
+  font-weight: 700;
+  color: var(--vscode-foreground);
+}
+.setting-desc {
+  margin: 0;
+  max-width: 70ch;
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: var(--vscode-descriptionForeground);
+}
+/* Says whether the parameter needs acting on, the way the settings editor annotates a
+   row it wants to draw attention to. */
+.setting-status {
+  margin: 8px 0 0 0;
+  font-size: 0.92em;
+  color: var(--vscode-descriptionForeground);
+}
+.setting-status.todo { color: var(--mlx-warn); font-weight: 600; }
+.setting-control { margin-left: auto; flex-shrink: 0; }
+
+.btn-fix {
+  padding: 5px 14px;
+  border-radius: 4px;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  text-decoration: none;
+  font-size: 0.88em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.btn-fix:hover { background: var(--vscode-button-hoverBackground); }
+/* Nothing to gather: the control keeps the row's shape but is plainly not a target.
+   A span, not a link, so there is nothing to click. */
+.btn-fix.disabled {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  opacity: 0.6;
+}

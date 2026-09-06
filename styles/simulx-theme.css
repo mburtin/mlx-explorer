@@ -1,0 +1,18 @@
+/* Simulx override: swaps theme.css's blue accent for the orange color uses by Simulx). */
+:root {
+  --mlx-accent: #e1723c;
+  --mlx-deep: #a9552d;
+  --mlx-tint: rgba(225, 114, 60, 0.05);
+  --mlx-band: rgba(225, 114, 60, 0.09);
+  --mlx-zebra: rgba(225, 114, 60, 0.04);
+  --mlx-hover: rgba(225, 114, 60, 0.10);
+  --mlx-border: var(--vscode-widget-border, rgba(225, 114, 60, 0.25));
+}
+body.vscode-dark, body.vscode-high-contrast {
+  --mlx-accent: #ff681e;
+  --mlx-tint: rgba(255, 104, 30, 0.05);
+  --mlx-band: rgba(255, 104, 30, 0.08);
+  --mlx-zebra: rgba(255, 104, 30, 0.05);
+  --mlx-hover: rgba(255, 104, 30, 0.11);
+  --mlx-border: var(--vscode-widget-border, rgba(255, 104, 30, 0.22));
+}

@@ -30,6 +30,34 @@ export function hasSection(content: string, name: string): boolean {
 }
 
 /**
+ * Returns the text after a `NAME:` marker (such as `POPULATION:`) until the next
+ * marker, `[BLOCK]`, `<SECTION>`, or the end.
+ */
+export function label(content: string, name: string): string | undefined {
+  return slice(content, new RegExp(`^${name}:`, "m"), /^[A-Z][A-Z0-9_]*:[ \t]*$|^\[|^</m);
+}
+
+/**
+ * The substring between the `{` at `openIndex` and its matching `}`, depth-counted so a
+ * nested `{...}` (a dose list, a time grid, ...) doesn't close it early. `content[openIndex]`
+ * must be `{`. Undefined if the braces never balance.
+ */
+export function braceBody(content: string, openIndex: number): string | undefined {
+  let depth = 0;
+  for (let i = openIndex; i < content.length; i++) {
+    if (content[i] === "{") {
+      depth++;
+    } else if (content[i] === "}") {
+      depth--;
+      if (depth === 0) {
+        return content.slice(openIndex + 1, i);
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
  * Monolix 2023+ writes file={path='...'}, earlier versions a bare file='...'
  */
 export function fileValue(content: string): string | undefined {

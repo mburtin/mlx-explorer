@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { openDataExplorer, openInApp, openRunPage } from "./commands";
+import { openDataExplorer, openInApp, openRunPage, openSummaryPage } from "./commands";
 import { ProjectsProvider } from "./projectsTree";
 import { TOOLS } from "./modules";
 
@@ -29,6 +29,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("mlxSuite.refreshProjects", refreshAll),
     vscode.commands.registerCommand("mlxSuite.openRun", (projectUri: vscode.Uri) =>
       openRunPage(context.extensionUri, projectUri)
+    ),
+    vscode.commands.registerCommand("mlxSuite.openSummary", (projectUri: vscode.Uri) =>
+      openSummaryPage(context.extensionUri, projectUri)
     ),
     vscode.commands.registerCommand("mlxSuite.openInApp", openInApp),
     vscode.commands.registerCommand("mlxSuite.openData", openDataExplorer),

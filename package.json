@@ -2,7 +2,7 @@
   "name": "mlxsuite-explorer",
   "displayName": "mlxSuite Explorer",
   "description": "Visualize MonolixSuite projects in Positron / VS Code.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",
@@ -69,6 +69,11 @@
         "category": "mlxSuite Explorer"
       },
       {
+        "command": "mlxSuite.openSummary",
+        "title": "Open project summary",
+        "category": "mlxSuite Explorer"
+      },
+      {
         "command": "mlxSuite.openInApp",
         "title": "Open project in its application",
         "category": "mlxSuite Explorer"
@@ -90,6 +95,10 @@
       "commandPalette": [
         {
           "command": "mlxSuite.openRun",
+          "when": "false"
+        },
+        {
+          "command": "mlxSuite.openSummary",
           "when": "false"
         },
         {

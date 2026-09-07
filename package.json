@@ -15,7 +15,8 @@
     "positron": "^2026.9.x"
   },
   "categories": [
-    "Other"
+    "Data Science",
+    "Visualization"
   ],
   "main": "./out/extension.js",
   "activationEvents": [

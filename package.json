@@ -1,0 +1,122 @@
+{
+  "name": "mlxsuite-explorer",
+  "displayName": "mlxSuite Explorer",
+  "description": "Visualize MonolixSuite projects in Positron / VS Code.",
+  "version": "1.0.0",
+  "publisher": "mburtin",
+  "license": "Apache-2.0",
+  "icon": "media/icons/store.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mburtin/mlxSuite-explorer.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0",
+    "positron": "^2026.9.x"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onView:mlxSuite.monolix",
+    "onView:mlxSuite.simulx"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mlxSuite",
+          "title": "mlxSuite Explorer",
+          "icon": "media/icons/sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "mlxSuite": [
+        {
+          "id": "mlxSuite.monolix",
+          "name": "Monolix",
+          "initialSize": 1
+        },
+        {
+          "id": "mlxSuite.simulx",
+          "name": "Simulx",
+          "initialSize": 1
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "mlxSuite.monolix",
+        "contents": "No Monolix project (.mlxtran) found in this folder."
+      },
+      {
+        "view": "mlxSuite.simulx",
+        "contents": "No Simulx project (.smlx) found in this folder."
+      }
+    ],
+    "commands": [
+      {
+        "command": "mlxSuite.refreshProjects",
+        "title": "Refresh",
+        "category": "mlxSuite Explorer",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "mlxSuite.openRun",
+        "title": "Open run results",
+        "category": "mlxSuite Explorer"
+      },
+      {
+        "command": "mlxSuite.openInApp",
+        "title": "Open project in its application",
+        "category": "mlxSuite Explorer"
+      },
+      {
+        "command": "mlxSuite.openData",
+        "title": "Open project dataset",
+        "category": "mlxSuite Explorer"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "mlxSuite.refreshProjects",
+          "when": "view == mlxSuite.monolix || view == mlxSuite.simulx",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "mlxSuite.openRun",
+          "when": "false"
+        },
+        {
+          "command": "mlxSuite.openInApp",
+          "when": "false"
+        },
+        {
+          "command": "mlxSuite.openData",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "lint": "eslint",
+    "vscode:prepublish": "npm run compile",
+    "package": "npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@stylistic/eslint-plugin": "^2.9.0",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "eslint": "^9.13.0",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.26.0"
+  }
+}

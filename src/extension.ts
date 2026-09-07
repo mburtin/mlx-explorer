@@ -1,0 +1,39 @@
+import * as vscode from "vscode";
+import { openDataExplorer, openInApp, openRunPage } from "./commands";
+import { ProjectsProvider } from "./projectsTree";
+import { TOOLS } from "./modules";
+
+export function activate(context: vscode.ExtensionContext): void {
+  const providers: ProjectsProvider[] = [];
+
+  for (const tool of TOOLS) {
+    const provider = new ProjectsProvider(tool);
+    providers.push(provider);
+
+    // An edited file can gain or lose the section that identifies it as a project:
+    // we also listen to onDidChange
+    const watcher = vscode.workspace.createFileSystemWatcher(tool.glob);
+    context.subscriptions.push(
+      vscode.window.registerTreeDataProvider(`mlxSuite.${tool.id}`, provider),
+      watcher,
+      watcher.onDidCreate(() => provider.refresh()),
+      watcher.onDidDelete(() => provider.refresh()),
+      watcher.onDidChange(() => provider.refresh())
+    );
+  }
+
+  // Refresh all project lists so every view stays up to date
+  const refreshAll = () => providers.forEach((provider) => provider.refresh());
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mlxSuite.refreshProjects", refreshAll),
+    vscode.commands.registerCommand("mlxSuite.openRun", (projectUri: vscode.Uri) =>
+      openRunPage(context.extensionUri, projectUri)
+    ),
+    vscode.commands.registerCommand("mlxSuite.openInApp", openInApp),
+    vscode.commands.registerCommand("mlxSuite.openData", openDataExplorer),
+    vscode.workspace.onDidChangeWorkspaceFolders(refreshAll)
+  );
+}
+
+export function deactivate(): void {}

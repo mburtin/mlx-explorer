@@ -1,0 +1,85 @@
+/* Result tables, and the CV / omega switch that rides on one. */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--vscode-editor-font-family);
+}
+th, td { text-align: left; padding: 7px 16px; }
+th {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 0.84em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vscode-foreground);
+  border-bottom: 1px solid var(--mlx-border);
+}
+th.num, td.num { text-align: right; }
+th:last-child, td:last-child { padding-right: 28px; }
+th.split, td.split {
+  border-left: 1px solid var(--mlx-border);
+  width: 6.5em;
+  min-width: 6.5em;
+  white-space: nowrap;
+}
+/* Headers are uppercased, which would turn the sigma into a summation sign. */
+th .iiv-raw { text-transform: none; }
+tbody tr.alt td { background: var(--mlx-zebra); }
+/* The row under the cursor lifts. Painted on the cells, not on <tr>, because the
+   zebra above paints the cells and would otherwise cover a row-level background.
+   The correlation matrix is left out: its cell colours carry the reading. */
+table:not(.corr) tbody td { transition: background 0.12s ease; }
+table:not(.corr) tbody tr:hover td { background: var(--mlx-hover); }
+td.empty { color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground)); }
+td.warn { color: var(--mlx-warn); }
+
+/* Positioned over the card header (a sibling of <summary>, not a child of it, so
+   clicking it doesn't also fire the details' native open/close toggle). */
+.cv-switch {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  z-index: 1;
+}
+.cv-switch input { position: absolute; width: 0; height: 0; opacity: 0; }
+.cv-switch-slider {
+  position: relative;
+  box-sizing: border-box;
+  width: 28px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--vscode-input-background, rgba(127, 127, 127, 0.35));
+  border: 1px solid var(--mlx-border);
+  transition: background 0.12s ease;
+}
+.cv-switch-slider::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--vscode-foreground);
+  transition: transform 0.12s ease;
+}
+.cv-switch input:checked + .cv-switch-slider { background: var(--mlx-accent); }
+.cv-switch input:checked + .cv-switch-slider::after { transform: translateX(13px); background: #fff; }
+.cv-switch-label {
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--vscode-descriptionForeground);
+}
+
+/* The IIV cell always carries both readings; the checkbox above picks which one
+   shows. Default (checked) is CV (%). */
+.iiv-cv, .iiv-raw { display: inline; }
+.card:has(.cv-toggle:checked) .iiv-raw { display: none; }
+.card:not(:has(.cv-toggle:checked)) .iiv-cv { display: none; }

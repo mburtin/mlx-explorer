@@ -1,0 +1,10 @@
+.github/**
+.vscode/**
+.gitignore
+src/**
+out/**/*.map
+eslint.config.mjs
+example/**
+tsconfig.json
+CLAUDE.md
+**/*.ts

@@ -1,0 +1,35 @@
+/* Custom properties and the page ground. Everything else reads from here. */
+
+:root {
+  --mlx-accent: #1088ab;
+  --mlx-deep: #1c6384;
+  --mlx-warn: #a86414;
+  --mlx-tint: rgba(16, 136, 171, 0.05);
+  --mlx-band: rgba(16, 136, 171, 0.09);
+  --mlx-zebra: rgba(16, 136, 171, 0.04);
+  --mlx-hover: rgba(16, 136, 171, 0.10);
+  --mlx-border: var(--vscode-widget-border, rgba(16, 136, 171, 0.25));
+  --corr-pos: 28, 99, 132;
+  --corr-neg: 168, 69, 42;
+  --corr-ink: #ffffff;
+}
+body.vscode-dark, body.vscode-high-contrast {
+  --mlx-accent: #00add3;
+  --mlx-warn: #e8a33d;
+  --mlx-tint: rgba(0, 173, 211, 0.05);
+  --mlx-band: rgba(0, 173, 211, 0.08);
+  --mlx-zebra: rgba(0, 173, 211, 0.05);
+  --mlx-hover: rgba(0, 173, 211, 0.11);
+  --mlx-border: var(--vscode-widget-border, rgba(0, 173, 211, 0.22));
+  --corr-pos: 0, 173, 211;
+  --corr-neg: 232, 132, 90;
+  --corr-ink: #10222b;
+}
+
+body {
+  margin: 0;
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}

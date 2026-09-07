@@ -1,0 +1,57 @@
+/* The correlation matrix: a block of cells, not a table of numbers. */
+
+/* Chromium falls back to automatic layout when a fixed-layout table has no
+   explicit width, which lets a long parameter name squeeze the cells: the size
+   is held by the cells themselves instead. */
+/* Only the width is constrained: a matrix tall enough to need its own vertical
+   scrollbar would hide the column labels behind it. */
+.corr-scroll { overflow-x: auto; padding: 16px 16px 16px 0; }
+/* The matrix reads as one block: no rounding, no gap between cells. */
+table.corr { width: auto; border-collapse: collapse; margin: 0; }
+table.corr td { padding: 0; border: 0; }
+
+/* Kept in view while the matrix is panned sideways. */
+table.corr td.row-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  max-width: 240px;
+  padding: 0 12px 0 16px;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84em;
+  background: linear-gradient(var(--mlx-tint), var(--mlx-tint)),
+    var(--vscode-editorWidget-background, var(--vscode-editor-background));
+}
+td.corr {
+  width: 62px;
+  min-width: 62px;
+  height: 32px;
+  text-align: center;
+  font-size: 0.86em;
+  font-variant-numeric: tabular-nums;
+}
+td.corr.pos { background: rgba(var(--corr-pos), var(--a)); }
+td.corr.neg { background: rgba(var(--corr-neg), var(--a)); }
+td.corr.strong { color: var(--corr-ink); }
+/* A pair this correlated is already the most saturated cell around: the bold
+   reading is enough to call it out, and an outline on top only broke up the
+   block. */
+td.corr.flag { font-weight: 700; }
+
+/* Anchored at the top centre of its column and swung down-left, so the name
+   reads up towards the column it labels. The row height comes from the longest
+   name and is set inline. */
+td.col-label { vertical-align: top; }
+td.col-label > div { position: relative; }
+td.col-label span {
+  position: absolute;
+  top: 7px;
+  right: 31px;
+  transform: rotate(-45deg);
+  transform-origin: top right;
+  white-space: nowrap;
+  font-size: 0.84em;
+}

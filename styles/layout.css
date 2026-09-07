@@ -1,0 +1,70 @@
+/* Page frame: brand rule, header, the CSS-only tab strip, panels. */
+
+.brand-rule {
+  height: 3px;
+  background: linear-gradient(90deg, var(--mlx-accent) 0%, var(--mlx-deep) 100%);
+}
+header { padding: 22px 28px 0 28px; }
+.title-row { display: flex; align-items: baseline; gap: 10px; }
+h1 { margin: 0; font-size: 1.55em; font-weight: 600; letter-spacing: -0.01em; }
+.brand {
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mlx-accent);
+}
+.btn-open {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 4px;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  text-decoration: none;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.btn-open:hover { background: var(--vscode-button-hoverBackground); }
+.path {
+  margin-top: 5px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.88em;
+  color: var(--vscode-descriptionForeground);
+}
+nav {
+  display: flex;
+  gap: 22px;
+  margin-top: 18px;
+  border-bottom: 1px solid var(--mlx-border);
+}
+.tab {
+  padding-bottom: 9px;
+  margin-bottom: -1px;
+  color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground));
+}
+label.tab { cursor: pointer; user-select: none; }
+/* Data never becomes the active tab: it hands off to the workbench and leaves the
+   page as it was, so it only brightens on hover. */
+a.tab { text-decoration: none; cursor: pointer; }
+a.tab:hover { color: var(--vscode-foreground); }
+/* Visually hidden rather than display:none, so the radio group keeps its focus
+   ring and stays operable with the arrow keys. */
+.tab-state { position: absolute; width: 1px; height: 1px; opacity: 0; }
+#tab-results:checked ~ header label[for="tab-results"],
+#tab-model:checked ~ header label[for="tab-model"] {
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  border-bottom: 2px solid var(--mlx-accent);
+}
+#tab-results:focus-visible ~ header label[for="tab-results"],
+#tab-model:focus-visible ~ header label[for="tab-model"] {
+  outline: 1px solid var(--mlx-accent);
+  outline-offset: 3px;
+}
+
+main { padding: 18px 28px 28px 28px; }
+/* The panels are stacked and hidden; the checked radio above reveals one. */
+.panel { display: none; flex-direction: column; gap: 16px; }
+#tab-results:checked ~ main #panel-results,
+#tab-model:checked ~ main #panel-model { display: flex; }

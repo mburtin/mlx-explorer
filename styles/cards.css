@@ -1,0 +1,68 @@
+/* Cards components */
+.card {
+  border: 1px solid var(--mlx-border);
+  border-radius: 6px;
+  background: linear-gradient(var(--mlx-tint), var(--mlx-tint)),
+    var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  overflow: hidden;
+}
+
+/* Anchors .cv-switch to the header row: <summary> is the first child, so top:0
+   here lines up with the top of the card-head regardless of the card's total height. */
+details { position: relative; }
+.card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--mlx-band);
+  border-bottom: 1px solid var(--mlx-border);
+}
+
+/* Only a <summary> head toggles anything: the Model card's is a plain div, and a
+   pointer cursor on it would promise a click that does nothing. */
+summary.card-head { cursor: pointer; list-style: none; }
+summary.card-head::-webkit-details-marker { display: none; }
+.chevron {
+  display: inline-block;
+  font-size: 0.72em;
+  color: var(--vscode-descriptionForeground);
+  transition: transform 0.12s ease;
+}
+details[open] > .card-head .chevron { transform: rotate(90deg); }
+h2 {
+  margin: 0;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--vscode-foreground);
+}
+.note { font-size: 0.88em; color: var(--vscode-descriptionForeground); }
+
+.stats { display: flex; flex-wrap: wrap; }
+.stat { flex: 1; min-width: 6rem; padding: 13px 16px; }
+.stat + .stat { border-left: 1px solid var(--mlx-border); }
+.stat-label { font-size: 0.84em; letter-spacing: 0.04em; color: var(--vscode-descriptionForeground); }
+.stat-value {
+  margin-top: 3px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 1.3em;
+}
+
+/* Reads like an editor buffer: the file's own wrapping, panned sideways rather
+   than reflowed. */
+pre.model {
+  margin: 0;
+  padding: 14px 16px 16px 16px;
+  overflow-x: auto;
+  white-space: pre;
+  tab-size: 4;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size, 0.92em);
+  line-height: 1.5;
+  color: var(--vscode-editor-foreground, var(--vscode-foreground));
+}
+
+.empty-state { padding: 32px 24px; text-align: center; }
+.empty-state .path { margin-top: 8px; }

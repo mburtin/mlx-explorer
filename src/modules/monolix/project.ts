@@ -14,7 +14,7 @@ export const TOOL = {
   glob: "**/*.mlxtran",
   extension: ".mlxtran",
   identifies,
-  openCommand: "mlxSuite.openRun",
+  openCommand: "mlx-explorer.openRun",
   exportPath: parseExportPath,
   userFiles,
 };

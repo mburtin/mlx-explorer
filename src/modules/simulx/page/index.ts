@@ -17,7 +17,7 @@ export const STYLESHEETS = [
 ];
 
 function renderOpenButton(projectUri: string): string {
-  const href = `command:mlxSuite.openInApp?${encodeURIComponent(JSON.stringify([projectUri]))}`;
+  const href = `command:mlx-explorer.openInApp?${encodeURIComponent(JSON.stringify([projectUri]))}`;
   return `<a class="btn-open" href="${escapeHtml(href)}">Open in ${escapeHtml(TOOL.label)}</a>`;
 }
 
@@ -44,7 +44,9 @@ function renderNav(summary: Summary): string {
   tabs.push('<label class="tab" for="tab-settings">Settings</label>');
   if (summary.dataUri) {
     const args = encodeURIComponent(JSON.stringify([summary.dataUri]));
-    tabs.push(`<a class="tab" href="${escapeHtml(`command:mlxSuite.openData?${args}`)}">Data</a>`);
+    tabs.push(
+      `<a class="tab" href="${escapeHtml(`command:mlx-explorer.openData?${args}`)}">Data</a>`
+    );
   }
   return `<nav>${tabs.join("")}</nav>`;
 }

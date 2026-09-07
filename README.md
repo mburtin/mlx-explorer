@@ -1,4 +1,4 @@
-# mlxSuite Explorer
+# MLX Explorer
 
 Browse [MonolixSuite](https://www.simulations-plus.com/software/monolix/) projects and read their results in [Positron](https://positron.posit.co/).
 

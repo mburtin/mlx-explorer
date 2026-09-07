@@ -20,7 +20,7 @@ export const STYLESHEETS = [
 
 function renderOpenButton(projectUri: string): string {
   // Command-uri link: the CSP here forbids scripts
-  const href = `command:mlxSuite.openInApp?${encodeURIComponent(JSON.stringify([projectUri]))}`;
+  const href = `command:mlx-explorer.openInApp?${encodeURIComponent(JSON.stringify([projectUri]))}`;
   return `<a class="btn-open" href="${escapeHtml(href)}">Open in ${escapeHtml(TOOL.label)}</a>`;
 }
 
@@ -37,7 +37,9 @@ function renderNav(run: Run): string {
   if (run.dataUri) {
     // Command uris carry JSON arguments, so the dataset URI need to be a string
     const args = encodeURIComponent(JSON.stringify([run.dataUri]));
-    tabs.push(`<a class="tab" href="${escapeHtml(`command:mlxSuite.openData?${args}`)}">Data</a>`);
+    tabs.push(
+      `<a class="tab" href="${escapeHtml(`command:mlx-explorer.openData?${args}`)}">Data</a>`
+    );
   }
   if (run.model) {
     tabs.push('<label class="tab" for="tab-model">Model</label>');

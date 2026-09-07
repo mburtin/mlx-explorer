@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // we also listen to onDidChange
     const watcher = vscode.workspace.createFileSystemWatcher(tool.glob);
     context.subscriptions.push(
-      vscode.window.registerTreeDataProvider(`mlxSuite.${tool.id}`, provider),
+      vscode.window.registerTreeDataProvider(`mlx-explorer.${tool.id}`, provider),
       watcher,
       watcher.onDidCreate(() => provider.refresh()),
       watcher.onDidDelete(() => provider.refresh()),
@@ -27,20 +27,20 @@ export function activate(context: vscode.ExtensionContext): void {
   const refreshAll = () => providers.forEach((provider) => provider.refresh());
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("mlxSuite.refreshProjects", refreshAll),
+    vscode.commands.registerCommand("mlx-explorer.refreshProjects", refreshAll),
     vscode.commands.registerCommand(
-      "mlxSuite.openRun",
+      "mlx-explorer.openRun",
       (projectUri: vscode.Uri, activeTab?: string) =>
         openRunPage(context.extensionUri, projectUri, activeTab)
     ),
     vscode.commands.registerCommand(
-      "mlxSuite.openSummary",
+      "mlx-explorer.openSummary",
       (projectUri: vscode.Uri, activeTab?: string) =>
         openSummaryPage(context.extensionUri, projectUri, activeTab)
     ),
-    vscode.commands.registerCommand("mlxSuite.openInApp", openInApp),
-    vscode.commands.registerCommand("mlxSuite.applyProjectFix", applyProjectFix),
-    vscode.commands.registerCommand("mlxSuite.openData", openDataExplorer),
+    vscode.commands.registerCommand("mlx-explorer.openInApp", openInApp),
+    vscode.commands.registerCommand("mlx-explorer.applyProjectFix", applyProjectFix),
+    vscode.commands.registerCommand("mlx-explorer.openData", openDataExplorer),
     vscode.workspace.onDidChangeWorkspaceFolders(refreshAll)
   );
 }

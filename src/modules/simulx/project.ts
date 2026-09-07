@@ -17,7 +17,7 @@ export const TOOL = {
   glob: "**/*.smlx",
   extension: ".smlx",
   identifies,
-  openCommand: "mlxSuite.openSummary",
+  openCommand: "mlx-explorer.openSummary",
   exportPath: parseExportPath,
   userFiles,
 };

@@ -1,14 +1,14 @@
 {
-  "name": "mlxsuite-explorer",
-  "displayName": "mlxSuite Explorer",
+  "name": "mlx-explorer",
+  "displayName": "MLX Explorer",
   "description": "Visualize MonolixSuite projects in Positron.",
-  "version": "1.2.5",
+  "version": "1.2.7",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mburtin/mlxSuite-explorer.git"
+    "url": "https://github.com/mburtin/mlx-explorer.git"
   },
   "engines": {
     "vscode": "^1.85.0",
@@ -19,29 +19,25 @@
     "Visualization"
   ],
   "main": "./out/extension.js",
-  "activationEvents": [
-    "onView:mlxSuite.monolix",
-    "onView:mlxSuite.simulx"
-  ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "mlxSuite",
-          "title": "mlxSuite Explorer",
+          "id": "mlx-explorer",
+          "title": "mlx Explorer",
           "icon": "media/icons/sidebar.svg"
         }
       ]
     },
     "views": {
-      "mlxSuite": [
+      "mlx-explorer": [
         {
-          "id": "mlxSuite.monolix",
+          "id": "mlx-explorer.monolix",
           "name": "Monolix",
           "initialSize": 1
         },
         {
-          "id": "mlxSuite.simulx",
+          "id": "mlx-explorer.simulx",
           "name": "Simulx",
           "initialSize": 1
         }
@@ -49,74 +45,74 @@
     },
     "viewsWelcome": [
       {
-        "view": "mlxSuite.monolix",
+        "view": "mlx-explorer.monolix",
         "contents": "No Monolix project (.mlxtran) found in this folder."
       },
       {
-        "view": "mlxSuite.simulx",
+        "view": "mlx-explorer.simulx",
         "contents": "No Simulx project (.smlx) found in this folder."
       }
     ],
     "commands": [
       {
-        "command": "mlxSuite.refreshProjects",
+        "command": "mlx-explorer.refreshProjects",
         "title": "Refresh",
-        "category": "mlxSuite Explorer",
+        "category": "mlx Explorer",
         "icon": "$(refresh)"
       },
       {
-        "command": "mlxSuite.openRun",
+        "command": "mlx-explorer.openRun",
         "title": "Open run results",
-        "category": "mlxSuite Explorer"
+        "category": "mlx Explorer"
       },
       {
-        "command": "mlxSuite.openSummary",
+        "command": "mlx-explorer.openSummary",
         "title": "Open project summary",
-        "category": "mlxSuite Explorer"
+        "category": "mlx Explorer"
       },
       {
-        "command": "mlxSuite.openInApp",
+        "command": "mlx-explorer.openInApp",
         "title": "Open project in its application",
-        "category": "mlxSuite Explorer"
+        "category": "mlx Explorer"
       },
       {
-        "command": "mlxSuite.openData",
+        "command": "mlx-explorer.openData",
         "title": "Open project dataset",
-        "category": "mlxSuite Explorer"
+        "category": "mlx Explorer"
       },
       {
-        "command": "mlxSuite.applyProjectFix",
+        "command": "mlx-explorer.applyProjectFix",
         "title": "Gather the project's files into the run",
-        "category": "mlxSuite Explorer"
+        "category": "mlx Explorer"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "mlxSuite.refreshProjects",
-          "when": "view == mlxSuite.monolix || view == mlxSuite.simulx",
+          "command": "mlx-explorer.refreshProjects",
+          "when": "view == mlx-explorer.monolix || view == mlx-explorer.simulx",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
-          "command": "mlxSuite.openRun",
+          "command": "mlx-explorer.openRun",
           "when": "false"
         },
         {
-          "command": "mlxSuite.openSummary",
+          "command": "mlx-explorer.openSummary",
           "when": "false"
         },
         {
-          "command": "mlxSuite.openInApp",
+          "command": "mlx-explorer.openInApp",
           "when": "false"
         },
         {
-          "command": "mlxSuite.openData",
+          "command": "mlx-explorer.openData",
           "when": "false"
         },
         {
-          "command": "mlxSuite.applyProjectFix",
+          "command": "mlx-explorer.applyProjectFix",
           "when": "false"
         }
       ]

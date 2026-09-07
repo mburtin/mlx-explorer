@@ -147,7 +147,7 @@ function renderControl(settings: Settings): string {
   }
 
   const args = encodeURIComponent(JSON.stringify([settings.projectUri]));
-  const href = `command:mlxSuite.applyProjectFix?${args}`;
+  const href = `command:mlx-explorer.applyProjectFix?${args}`;
   return `<div class="setting-control">` +
     `<a class="btn-fix" href="${escapeHtml(href)}">Fix</a></div>`;
 }

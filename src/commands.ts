@@ -29,14 +29,18 @@ export async function openRunPage(
 
   const panel = showPanel(projectUri.toString(), () =>
     vscode.window.createWebviewPanel(
-      "mlxSuite.run",
+      "mlx-explorer.run",
       run.name,
       // preserveFocus keeps keyboard focus on the sidebar tree so arrow-key
       // navigation between runs keeps working after one is opened.
       { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
       {
         enableFindWidget: true,
-        enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
+        enableCommandUris: [
+          "mlx-explorer.openInApp",
+          "mlx-explorer.openData",
+          "mlx-explorer.applyProjectFix",
+        ],
         // The stylesheets live in styles/: nothing else is reachable from the page.
         localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
       }
@@ -60,12 +64,16 @@ export async function openSummaryPage(
 
   const panel = showPanel(projectUri.toString(), () =>
     vscode.window.createWebviewPanel(
-      "mlxSuite.summary",
+      "mlx-explorer.summary",
       summary.name,
       { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
       {
         enableFindWidget: true,
-        enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
+        enableCommandUris: [
+          "mlx-explorer.openInApp",
+          "mlx-explorer.openData",
+          "mlx-explorer.applyProjectFix",
+        ],
         localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
       }
     )

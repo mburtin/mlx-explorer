@@ -44,7 +44,7 @@ const open = new Map<string, vscode.WebviewPanel>();
 export function showPanel(key: string, create: () => vscode.WebviewPanel): vscode.WebviewPanel {
   const existing = open.get(key);
   if (existing) {
-    existing.reveal();
+    existing.reveal(undefined, true);
     return existing;
   }
 

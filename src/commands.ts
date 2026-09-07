@@ -28,12 +28,19 @@ export async function openRunPage(
   const run = await readRun(projectUri);
 
   const panel = showPanel(projectUri.toString(), () =>
-    vscode.window.createWebviewPanel("mlxSuite.run", run.name, vscode.ViewColumn.Active, {
-      enableFindWidget: true,
-      enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
-      // The stylesheets live in styles/: nothing else is reachable from the page.
-      localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
-    })
+    vscode.window.createWebviewPanel(
+      "mlxSuite.run",
+      run.name,
+      // preserveFocus keeps keyboard focus on the sidebar tree so arrow-key
+      // navigation between runs keeps working after one is opened.
+      { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
+      {
+        enableFindWidget: true,
+        enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
+        // The stylesheets live in styles/: nothing else is reachable from the page.
+        localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
+      }
+    )
   );
 
   panel.webview.html = renderRunPage(
@@ -52,11 +59,16 @@ export async function openSummaryPage(
   const summary = await readSummary(projectUri);
 
   const panel = showPanel(projectUri.toString(), () =>
-    vscode.window.createWebviewPanel("mlxSuite.summary", summary.name, vscode.ViewColumn.Active, {
-      enableFindWidget: true,
-      enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
-      localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
-    })
+    vscode.window.createWebviewPanel(
+      "mlxSuite.summary",
+      summary.name,
+      { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
+      {
+        enableFindWidget: true,
+        enableCommandUris: ["mlxSuite.openInApp", "mlxSuite.openData", "mlxSuite.applyProjectFix"],
+        localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
+      }
+    )
   );
 
   panel.webview.html = renderSummaryPage(

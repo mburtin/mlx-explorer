@@ -21,7 +21,6 @@ function renderOpenButton(projectUri: string): string {
   return `<a class="btn-open" href="${escapeHtml(href)}">Open in ${escapeHtml(TOOL.label)}</a>`;
 }
 
-
 function renderEmptyState(): string {
   return `<section class="card empty-state">
     <div>No Simulation group defined in this project.</div>
@@ -38,16 +37,17 @@ function renderTabState(summary: Summary, active: string): string {
 // Data is a link, not a panel. We use Positron DataExplorer to render it.
 function renderNav(summary: Summary): string {
   const tabs = ['<label class="tab" for="tab-results">Summary</label>'];
-  if (summary.model) {
-    tabs.push('<label class="tab" for="tab-model">Model</label>');
-  }
-  tabs.push('<label class="tab" for="tab-settings">Settings</label>');
   if (summary.dataUri) {
+    // Command uris carry JSON arguments, so the dataset URI need to be a string
     const args = encodeURIComponent(JSON.stringify([summary.dataUri]));
     tabs.push(
       `<a class="tab" href="${escapeHtml(`command:mlx-explorer.openData?${args}`)}">Data</a>`
     );
   }
+  if (summary.model) {
+    tabs.push('<label class="tab" for="tab-model">Model</label>');
+  }
+  tabs.push('<label class="tab" for="tab-settings">Settings</label>');
   return `<nav>${tabs.join("")}</nav>`;
 }
 

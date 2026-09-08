@@ -115,3 +115,8 @@ export function setGlobalSetting(content: string, key: string, value: string): s
 export function quotedValue(content: string, key: string): string | undefined {
   return new RegExp(`^${key}\\s*=\\s*'([^']*)'`, "m").exec(content)?.[1];
 }
+
+/** Folder the project exports to, relative to the project folder. Same key in every tool. */
+export function parseExportPath(content: string): string | undefined {
+  return quotedValue(content, "exportpath");
+}

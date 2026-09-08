@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { readTable, readText } from "../../../common/files";
 import { columnIndex, formatFixed, Table } from "../../../common/table";
-import { escapeHtml } from "../../../common/webview";
+import { escapeHtml, numCell, stripe } from "../../../common/webview";
 
 // Above this threshold the parameter estimate is imprecise
 const RSE_WARNING = 20;
@@ -147,13 +147,6 @@ function warnClass(rse: string): string {
   return rse !== "" && Number(rse) > RSE_WARNING ? " warn" : "";
 }
 
-// Renders one numeric table cell
-function cell(raw: string, extraClass = ""): string {
-  const text = raw === "" ? "—" : formatFixed(raw);
-  const empty = raw === "" ? " empty" : "";
-  return `<td class="num${empty}${extraClass}" title="${escapeHtml(raw)}">${escapeHtml(text)}</td>`;
-}
-
 // Renders the likelihood / model selection criteria card
 function renderCriteria(criteria: Table): string {
   const rows = criteria.rows.filter(([name]) => name !== "standardError");
@@ -205,14 +198,13 @@ function renderParameters(view: ParameterView): string {
     (view.hasIiv && view.hasRse ? '<th class="num">RSE (%)</th>' : "");
 
   const body = view.rows
-    .map((row, index) => {
-      const stripe = index % 2 === 1 ? ' class="alt"' : "";
-      return `<tr${stripe}><td class="name">${escapeHtml(row.name)}</td>${cell(row.value)}` +
-        (view.hasRse ? cell(row.rse, warnClass(row.rse)) : "") +
-        (view.hasIiv ? iivCell(row.iiv, row.iivValue) : "") +
-        (view.hasIiv && view.hasRse ? cell(row.iivRse, warnClass(row.iivRse)) : "") +
-        "</tr>";
-    })
+    .map((row, index) =>
+      `<tr${stripe(index)}><td>${escapeHtml(row.name)}</td>${numCell(row.value)}` +
+      (view.hasRse ? numCell(row.rse, warnClass(row.rse)) : "") +
+      (view.hasIiv ? iivCell(row.iiv, row.iivValue) : "") +
+      (view.hasIiv && view.hasRse ? numCell(row.iivRse, warnClass(row.iivRse)) : "") +
+      "</tr>"
+    )
     .join("");
 
   // Without a FIM, Monolix produces neither standard errors nor likelihood

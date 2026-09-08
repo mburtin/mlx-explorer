@@ -1,13 +1,14 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { readText } from "../../common/files";
+import { exists, readText } from "../../common/files";
+import { runFolder } from "../index";
 import { readSettings, Settings } from "../../projectSettings";
 import { block, label, section } from "../../common/mlxtran";
 import { ModelFile, readModel } from "./page/modelTab";
 import { OutputDef, readOutputs } from "./page/outputsSection";
 import { ParameterSet, readParameters } from "./page/parametersSection";
 import { Treatment, readTreatments } from "./page/treatmentsSection";
-import { resolveDataFile, TOOL } from "./project";
+import { TOOL } from "./project";
 
 /** What the Summary page shows: the "Simulations" definition, `[EXPLORATION]` left untouched. */
 export interface Summary {
@@ -34,8 +35,20 @@ function hasSimulationGroups(content: string): boolean {
   return groups !== undefined && /'[^']+'\s*=\s*\{/.test(groups);
 }
 
+// The dataset Simulx wrote in `<export>/Simulations/simulatedData.csv`.
+async function resolveDataFile(
+  projectUri: vscode.Uri,
+  content: string
+): Promise<string | undefined> {
+  const { uri: exportRoot } = runFolder(projectUri, content, TOOL);
+  const uri = vscode.Uri.joinPath(exportRoot, "Simulations", "simulatedData.csv");
+  // Not run yet, or an older export layout: no Data tab rather than one that opens nothing.
+  return (await exists(uri)) ? uri.toString() : undefined;
+}
+
 export async function readSummary(projectUri: vscode.Uri): Promise<Summary> {
-  const name = path.basename(projectUri.fsPath, ".smlx");
+  // The project's own name, not the export folder's: they differ once exportpath is set.
+  const name = path.basename(projectUri.fsPath, TOOL.extension);
   const content = await readText(projectUri);
 
   return {
@@ -48,6 +61,6 @@ export async function readSummary(projectUri: vscode.Uri): Promise<Summary> {
     outputs: content === undefined ? [] : readOutputs(content),
     model: content === undefined ? undefined : await readModel(projectUri, content),
     settings: await readSettings(projectUri, content, TOOL),
-    dataUri: content === undefined ? undefined : await resolveDataFile(projectUri, content, name),
+    dataUri: content === undefined ? undefined : await resolveDataFile(projectUri, content),
   };
 }

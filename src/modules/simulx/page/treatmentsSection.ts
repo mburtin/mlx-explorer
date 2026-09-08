@@ -1,6 +1,6 @@
-import { block, label, section } from "../../../common/mlxtran";
-import { escapeHtml } from "../../../common/webview";
+import { escapeHtml, stripe } from "../../../common/webview";
 import { scanNamedEntries } from "../entries";
+import { definitionLabel } from "../project";
 
 export interface Treatment {
   name: string;
@@ -61,9 +61,7 @@ function repeatedSchedule(body: string): string | undefined {
  * with mismatched array lengths, is dropped rather than shown wrong.
  */
 export function readTreatments(content: string): Treatment[] {
-  const simulx = section(content, "SIMULX");
-  const definition = simulx === undefined ? undefined : block(simulx, "DEFINITION");
-  const treatment = definition === undefined ? undefined : label(definition, "TREATMENT");
+  const treatment = definitionLabel(content, "TREATMENT");
   if (treatment === undefined) {
     return [];
   }
@@ -86,11 +84,10 @@ export function renderTreatments(treatments: Treatment[]): string {
   }
 
   const rows = treatments
-    .map((t, i) => {
-      const stripe = i % 2 === 1 ? ' class="alt"' : "";
-      return `<tr${stripe}><td class="name">${escapeHtml(t.name)}</td>` +
-        `<td class="num">${escapeHtml(t.adm)}</td><td>${escapeHtml(t.schedule)}</td></tr>`;
-    })
+    .map((t, i) =>
+      `<tr${stripe(i)}><td>${escapeHtml(t.name)}</td>` +
+      `<td class="num">${escapeHtml(t.adm)}</td><td>${escapeHtml(t.schedule)}</td></tr>`
+    )
     .join("");
 
   return `<section class="card">

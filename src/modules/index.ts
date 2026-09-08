@@ -1,3 +1,6 @@
+import * as path from "path";
+import * as vscode from "vscode";
+import { resolveProjectPath } from "../common/files";
 import { TOOL as MONOLIX } from "./monolix/project";
 import { TOOL as SIMULX } from "./simulx/project";
 
@@ -37,4 +40,22 @@ export interface Tool {
   userFiles(content: string): DeclaredFile[];
 }
 
+/** The tool a project file belongs to, told apart by its extension. */
+export function toolFor(projectUri: vscode.Uri): Tool | undefined {
+  return TOOLS.find((candidate) => projectUri.fsPath.endsWith(candidate.extension));
+}
 
+/**
+ * Returns the folder where the run will be exported. Uses the project's `exportpath`, 
+ * or the project name if none is set. Returns both the folder name and its URI.
+ */
+export function runFolder(
+  projectUri: vscode.Uri,
+  content: string | undefined,
+  tool: Tool
+): { name: string; uri: vscode.Uri } {
+  const name =
+    (content && tool.exportPath(content)) ||
+    path.basename(projectUri.fsPath, tool.extension);
+  return { name, uri: resolveProjectPath(projectUri, name) };
+}

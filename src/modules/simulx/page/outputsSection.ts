@@ -1,6 +1,6 @@
-import { block, label, section } from "../../../common/mlxtran";
-import { escapeHtml } from "../../../common/webview";
+import { escapeHtml, stripe } from "../../../common/webview";
 import { scanNamedEntries } from "../entries";
+import { definitionLabel } from "../project";
 
 export interface OutputDef {
   name: string;
@@ -16,9 +16,7 @@ export interface OutputDef {
  * (e.g. explicit `times={...}`) is dropped rather than shown wrong.
  */
 export function readOutputs(content: string): OutputDef[] {
-  const simulx = section(content, "SIMULX");
-  const definition = simulx === undefined ? undefined : block(simulx, "DEFINITION");
-  const output = definition === undefined ? undefined : label(definition, "OUTPUT");
+  const output = definitionLabel(content, "OUTPUT");
   if (output === undefined) {
     return [];
   }
@@ -44,9 +42,8 @@ export function renderOutputs(outputs: OutputDef[]): string {
 
   const rows = outputs
     .map((o, i) => {
-      const stripe = i % 2 === 1 ? ' class="alt"' : "";
       const grid = `${o.start} → ${o.final} (step ${o.interval})`;
-      return `<tr${stripe}><td class="name">${escapeHtml(o.name)}</td>` +
+      return `<tr${stripe(i)}><td>${escapeHtml(o.name)}</td>` +
         `<td>${escapeHtml(o.variable)}</td><td>${escapeHtml(grid)}</td></tr>`;
     })
     .join("");

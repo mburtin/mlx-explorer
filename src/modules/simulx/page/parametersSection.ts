@@ -1,7 +1,6 @@
-import { block, label, section } from "../../../common/mlxtran";
-import { formatFixed } from "../../../common/table";
-import { escapeHtml } from "../../../common/webview";
+import { escapeHtml, numCell, stripe } from "../../../common/webview";
 import { scanNamedEntries } from "../entries";
+import { definitionLabel } from "../project";
 
 export interface ParameterRow {
   name: string;
@@ -51,9 +50,7 @@ function buildRows(names: string[], values: string[]): ParameterRow[] {
  * name count is dropped rather than shown misaligned.
  */
 export function readParameters(content: string): ParameterSet[] {
-  const simulx = section(content, "SIMULX");
-  const definition = simulx === undefined ? undefined : block(simulx, "DEFINITION");
-  const population = definition === undefined ? undefined : label(definition, "POPULATION");
+  const population = definitionLabel(content, "POPULATION");
   if (population === undefined) {
     return [];
   }
@@ -82,13 +79,6 @@ export function readParameters(content: string): ParameterSet[] {
   return sets;
 }
 
-/** Same empty-dash convention as Monolix's Results tab: a blank source value reads as "—". */
-function cell(raw: string): string {
-  const text = raw === "" ? "—" : formatFixed(raw);
-  const empty = raw === "" ? " empty" : "";
-  return `<td class="num${empty}" title="${escapeHtml(raw)}">${escapeHtml(text)}</td>`;
-}
-
 export function renderParameters(sets: ParameterSet[]): string {
   if (sets.length === 0) {
     return "";
@@ -97,11 +87,10 @@ export function renderParameters(sets: ParameterSet[]): string {
   const tables = sets
     .map((set) => {
       const rows = set.rows
-        .map((row, i) => {
-          const stripe = i % 2 === 1 ? ' class="alt"' : "";
-          return `<tr${stripe}><td class="name">${escapeHtml(row.name)}</td>` +
-            `${cell(row.value)}${cell(row.omega)}</tr>`;
-        })
+        .map((row, i) =>
+          `<tr${stripe(i)}><td>${escapeHtml(row.name)}</td>` +
+          `${numCell(row.value)}${numCell(row.omega)}</tr>`
+        )
         .join("");
       // Only worth naming the set when there's more than one to tell apart.
       const caption = sets.length > 1 ? `<div class="note">${escapeHtml(set.name)}</div>` : "";

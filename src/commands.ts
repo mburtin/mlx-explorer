@@ -1,8 +1,7 @@
-import * as path from "path";
 import * as vscode from "vscode";
-import { exists, readText, resolveProjectPath } from "./common/files";
+import { exists, readText } from "./common/files";
 import { showPanel, WebviewAssets } from "./common/webview";
-import { TOOLS } from "./modules";
+import { runFolder, toolFor } from "./modules";
 import { renderRunPage, STYLESHEETS as MONOLIX_STYLESHEETS } from "./modules/monolix/page";
 import { readRun } from "./modules/monolix/run";
 import { renderSummaryPage, STYLESHEETS as SIMULX_STYLESHEETS } from "./modules/simulx/page";
@@ -104,20 +103,14 @@ export async function openInApp(target: unknown): Promise<void> {
 // Command to reveal a run's results folder (predictions, charts, ...) in the OS file explorer
 export async function openInFolder(target: unknown): Promise<void> {
   const projectUri = vscode.Uri.parse(String(target));
-  const tool = TOOLS.find((candidate) => projectUri.fsPath.endsWith(candidate.extension));
-  const content = tool === undefined ? undefined : await readText(projectUri);
-
-  // Same folder the run exports to: without an exportpath, the suite uses the project name.
-  const resultsUri = tool === undefined
+  const tool = toolFor(projectUri);
+  const results = tool === undefined
     ? undefined
-    : resolveProjectPath(
-        projectUri,
-        (content && tool.exportPath(content)) || path.basename(projectUri.fsPath, tool.extension)
-      );
+    : runFolder(projectUri, await readText(projectUri), tool).uri;
 
-  if (resultsUri !== undefined && (await exists(resultsUri))) {
+  if (results !== undefined && (await exists(results))) {
     // Opens the folder itself, rather than just selecting it in its parent.
-    await vscode.env.openExternal(resultsUri);
+    await vscode.env.openExternal(results);
   } else {
     // Not run yet, or the results were moved: fall back to revealing the project file.
     await vscode.commands.executeCommand("revealFileInOS", projectUri);

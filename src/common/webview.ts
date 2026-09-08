@@ -1,12 +1,26 @@
 import * as vscode from "vscode";
+import { formatFixed } from "./table";
 
-// Escapes the five characters that would otherwise open a tag or close an attribute
+// Escapes the characters that would otherwise open a tag or close an attribute
 export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// A numeric table cell. A blank source value reads as an em dash rather than an empty box
+export function numCell(raw: string, extraClass = ""): string {
+  const text = raw === "" ? "—" : formatFixed(raw);
+  const empty = raw === "" ? " empty" : "";
+  return `<td class="num${empty}${extraClass}" title="${escapeHtml(raw)}">${escapeHtml(text)}</td>`;
+}
+
+// Zebra attribute for a body row
+export function stripe(index: number): string {
+  return index % 2 === 1 ? ' class="alt"' : "";
 }
 
 export interface WebviewAssets {

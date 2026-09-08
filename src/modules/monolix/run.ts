@@ -1,10 +1,11 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { readText } from "../../common/files";
+import { exists, readText, resolveProjectPath } from "../../common/files";
+import { runFolder } from "../index";
 import { readSettings, Settings } from "../../projectSettings";
 import { ModelFile, readModel } from "./page/modelTab";
 import { ResultsData, readResults } from "./page/resultsTab";
-import { resolveDataFile, resultsFolder, TOOL } from "./project";
+import { parseDataFile, TOOL } from "./project";
 
 export interface Run {
   name: string;
@@ -16,10 +17,24 @@ export interface Run {
   dataUri?: string;
 }
 
+async function resolveDataFile(
+  projectUri: vscode.Uri,
+  project: string | undefined
+): Promise<string | undefined> {
+  const declared = project === undefined ? undefined : parseDataFile(project);
+  if (declared === undefined) {
+    return undefined;
+  }
+  const uri = resolveProjectPath(projectUri, declared);
+  // Hide the Data tab if the dataset was moved or the project came from another machine.
+  return (await exists(uri)) ? uri.toString() : undefined;
+}
+
 export async function readRun(projectUri: vscode.Uri): Promise<Run> {
-  const name = path.basename(projectUri.fsPath, ".mlxtran");
+  // The project's own name, not the export folder's: they differ once exportpath is set.
+  const name = path.basename(projectUri.fsPath, TOOL.extension);
   const project = await readText(projectUri);
-  const results = resultsFolder(projectUri, project, name);
+  const { uri: results } = runFolder(projectUri, project, TOOL);
 
   return {
     name,

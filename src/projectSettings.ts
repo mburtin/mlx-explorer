@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 import { exists, readText, resolveProjectPath, writeText } from "./common/files";
 import { replaceFileValue, setGlobalSetting } from "./common/mlxtran";
 import { escapeHtml } from "./common/webview";
-import { DeclaredFile, Tool, TOOLS } from "./modules";
+import { DeclaredFile, runFolder, Tool, toolFor } from "./modules";
 
 /** MonolixSuite's own flag for this layout: set, the app keeps it on the next save. */
 const FLAG = "userFilesNextToProject";
@@ -79,14 +79,11 @@ async function checkAll(
   content: string | undefined,
   tool: Tool
 ): Promise<{ runName: string; checked: Checked[] }> {
-  const name = path.basename(projectUri.fsPath, tool.extension);
+  const { name: runName, uri: runUri } = runFolder(projectUri, content, tool);
   if (content === undefined) {
-    return { runName: name, checked: [] };
+    return { runName, checked: [] };
   }
 
-  // Same folder the run exports to: without an exportpath, the suite uses the project name.
-  const runName = tool.exportPath(content) || name;
-  const runUri = resolveProjectPath(projectUri, runName);
   const checked = await Promise.all(
     tool.userFiles(content).map((file) => check(projectUri, runUri, file))
   );
@@ -203,7 +200,7 @@ async function gather(
  */
 export async function applyProjectFix(target: unknown): Promise<void> {
   const projectUri = vscode.Uri.parse(String(target));
-  const tool = TOOLS.find((candidate) => projectUri.fsPath.endsWith(candidate.extension));
+  const tool = toolFor(projectUri);
   const content = tool === undefined ? undefined : await readText(projectUri);
   if (tool === undefined || content === undefined) {
     await vscode.window.showErrorMessage(

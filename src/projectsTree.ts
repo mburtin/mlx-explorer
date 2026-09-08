@@ -22,7 +22,6 @@ export class ProjectsProvider implements vscode.TreeDataProvider<vscode.Uri> {
     // resourceUri provides the theme icon and the tooltip (full path on hover).
     const item = new vscode.TreeItem(uri, vscode.TreeItemCollapsibleState.None);
     item.label = path.basename(uri.fsPath, this.tool.extension);
-    item.command = { command: this.tool.openCommand, title: "Open project", arguments: [uri] };
     item.contextValue = `${this.tool.id}Project`;
     return item;
   }

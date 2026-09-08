@@ -39,6 +39,7 @@ export function activate(context: vscode.ExtensionContext): void {
         openSummaryPage(context.extensionUri, projectUri, activeTab)
     ),
     vscode.commands.registerCommand("mlx-explorer.openInApp", openInApp),
+    vscode.commands.registerCommand("mlx-explorer.openInFolder", openInFolder),
     vscode.commands.registerCommand("mlx-explorer.applyProjectFix", applyProjectFix),
     vscode.commands.registerCommand("mlx-explorer.openData", openDataExplorer),
     vscode.workspace.onDidChangeWorkspaceFolders(refreshAll)

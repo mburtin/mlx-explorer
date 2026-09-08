@@ -72,7 +72,12 @@
       },
       {
         "command": "mlx-explorer.openInApp",
-        "title": "Open project in its application",
+        "title": "Open in App",
+        "category": "mlx Explorer"
+      },
+      {
+        "command": "mlx-explorer.openInFolder",
+        "title": "Reveal in Finder",
         "category": "mlx Explorer"
       },
       {
@@ -84,6 +89,37 @@
         "command": "mlx-explorer.applyProjectFix",
         "title": "Gather the project's files into the run",
         "category": "mlx Explorer"
+      },
+      {
+        "command": "mlx-explorer.moveSelection",
+        "title": "Move selection",
+        "category": "mlx Explorer"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "mlx-explorer.moveSelection",
+        "key": "down",
+        "when": "focusedView == 'mlx-explorer.monolix'",
+        "args": { "toolId": "monolix", "delta": 1 }
+      },
+      {
+        "command": "mlx-explorer.moveSelection",
+        "key": "up",
+        "when": "focusedView == 'mlx-explorer.monolix'",
+        "args": { "toolId": "monolix", "delta": -1 }
+      },
+      {
+        "command": "mlx-explorer.moveSelection",
+        "key": "down",
+        "when": "focusedView == 'mlx-explorer.simulx'",
+        "args": { "toolId": "simulx", "delta": 1 }
+      },
+      {
+        "command": "mlx-explorer.moveSelection",
+        "key": "up",
+        "when": "focusedView == 'mlx-explorer.simulx'",
+        "args": { "toolId": "simulx", "delta": -1 }
       }
     ],
     "menus": {
@@ -92,6 +128,18 @@
           "command": "mlx-explorer.refreshProjects",
           "when": "view == mlx-explorer.monolix || view == mlx-explorer.simulx",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "mlx-explorer.openInApp",
+          "when": "viewItem == monolixProject || viewItem == simulxProject",
+          "group": "1_open@1"
+        },
+        {
+          "command": "mlx-explorer.openInFolder",
+          "when": "viewItem == monolixProject || viewItem == simulxProject",
+          "group": "1_open@2"
         }
       ],
       "commandPalette": [
@@ -108,11 +156,19 @@
           "when": "false"
         },
         {
+          "command": "mlx-explorer.openInFolder",
+          "when": "false"
+        },
+        {
           "command": "mlx-explorer.openData",
           "when": "false"
         },
         {
           "command": "mlx-explorer.applyProjectFix",
+          "when": "false"
+        },
+        {
+          "command": "mlx-explorer.moveSelection",
           "when": "false"
         }
       ]

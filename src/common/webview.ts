@@ -51,19 +51,23 @@ ${body}
 </html>`;
 }
 
-// One panel per key/project to avoid stacking a second copy of it
-const open = new Map<string, vscode.WebviewPanel>();
+// Panels open per key, so a split editor can hold more than one at a time
+const open = new Map<string, Set<vscode.WebviewPanel>>();
 
-// Reveals the panel already open for `key`, or creates one and tracks it until it is disposed
+// Reuses the `key` panel the user is actively viewing, so switching runs updates
+// it in place; otherwise creates a new one (e.g. an empty split, or another kind
+// of view being active) without touching panels already open elsewhere
 export function showPanel(key: string, create: () => vscode.WebviewPanel): vscode.WebviewPanel {
-  const existing = open.get(key);
-  if (existing) {
-    existing.reveal(undefined, true);
-    return existing;
+  const panels = open.get(key) ?? new Set<vscode.WebviewPanel>();
+  open.set(key, panels);
+
+  const active = [...panels].find((panel) => panel.active);
+  if (active) {
+    return active;
   }
 
   const panel = create();
-  open.set(key, panel);
-  panel.onDidDispose(() => open.delete(key));
+  panels.add(panel);
+  panel.onDidDispose(() => panels.delete(panel));
   return panel;
 }

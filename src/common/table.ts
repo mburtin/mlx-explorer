@@ -26,5 +26,13 @@ export function formatFixed(raw: string, decimals = 2): string {
   if (raw.trim() === "" || !Number.isFinite(value)) {
     return raw;
   }
-  return value.toFixed(decimals);
+  
+  const fixed = value.toFixed(decimals);
+  if (value === 0 || Number(fixed) !== 0) {
+    return fixed;
+  }
+
+  // Avoid to round a nonzero value to 0; adjust decimals to keep significant digits visible.
+  const magnitude = Math.floor(Math.log10(Math.abs(value)));
+  return value.toFixed(decimals - magnitude - 1);
 }

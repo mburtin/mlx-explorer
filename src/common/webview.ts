@@ -71,3 +71,9 @@ export function showPanel(key: string, create: () => vscode.WebviewPanel): vscod
   panel.onDidDispose(() => panels.delete(panel));
   return panel;
 }
+
+export function revealPanel(key: string): void {
+  const panels = open.get(key);
+  const panel = panels && [...panels][0];
+  panel?.reveal(undefined, true);
+}

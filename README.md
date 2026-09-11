@@ -8,6 +8,7 @@ Browse [MonolixSuite](https://www.simulations-plus.com/software/monolix/) projec
 - **Summary page** — Summarize the most important information in your run (such as parameter estimations and likelihood criteria).
 - **Model viewer** — Preview your model.
 - **Data viewer** — Use Positron DataExplorer to explore and analyze the data used in your run.
+- **Result export** — Export result tables as a SVG or PNG image, or copy them as R code.
 
 ## Requirements
 

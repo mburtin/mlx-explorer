@@ -57,7 +57,7 @@ export function renderSummaryPage(
   active = "results"
 ): string {
   const summaryContent = summary.hasSimulation
-    ? renderParameters(summary.parameterSets) +
+    ? renderParameters(summary.parameterSets, summary.projectUri) +
       renderTreatments(summary.treatments) +
       renderOutputs(summary.outputs)
     : renderEmptyState();

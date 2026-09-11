@@ -17,6 +17,17 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   ...tseslint.configs.stylistic,
   {
+    files: ['webview/**/*.js'],
+    languageOptions: {
+      globals: {
+        acquireVsCodeApi: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
+        Image: 'readonly'
+      }
+    }
+  },
+  {
     plugins: {
       '@stylistic': stylistic
     },

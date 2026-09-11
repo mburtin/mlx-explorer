@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { readTable, readText } from "../../../common/files";
 import { columnIndex, formatFixed, Table } from "../../../common/table";
+import { renderExportLink } from "../../../common/exportLink";
 import { escapeHtml, numCell, stripe } from "../../../common/webview";
 
 // Above this threshold the parameter estimate is imprecise
@@ -15,7 +16,7 @@ export interface ResultsData {
   correlation?: CorrelationMatrix;
 }
 
-interface ParameterRow {
+export interface ParameterRow {
   name: string;
   value: string;
   rse: string;
@@ -24,7 +25,7 @@ interface ParameterRow {
   iivValue: string; // Raw value of the random effect (in variance)
 }
 
-interface ParameterView {
+export interface ParameterView {
   hasIiv: boolean;
   hasRse: boolean;
   rows: ParameterRow[];
@@ -148,7 +149,7 @@ function warnClass(rse: string): string {
 }
 
 // Renders the likelihood / model selection criteria card
-function renderCriteria(criteria: Table): string {
+function renderCriteria(criteria: Table, projectUri: string): string {
   const rows = criteria.rows.filter(([name]) => name !== "standardError");
   if (rows.length === 0) {
     return "";
@@ -165,6 +166,7 @@ function renderCriteria(criteria: Table): string {
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Likelihood</h2></summary>
+      ${renderExportLink(projectUri, "criteria")}
       <div class="stats">${stats}</div>
     </details>
   </section>`;
@@ -184,7 +186,7 @@ function iivCell(cv: string, rawValue: string): string {
 }
 
 // Renders the model parameters table (values, RSE, IIV)
-function renderParameters(view: ParameterView): string {
+function renderParameters(view: ParameterView, projectUri: string): string {
   // Carries both column labels (CV% / omega) so the same toggle rules pick the
   // matching one, just like the cells carry both values.
   const iivHead =
@@ -224,6 +226,7 @@ function renderParameters(view: ParameterView): string {
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Model parameters</h2>${note}</summary>
+      ${renderExportLink(projectUri, "parameters")}
       ${toggle}
       <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
     </details>
@@ -282,7 +285,11 @@ function renderCorrelation(matrix: CorrelationMatrix): string {
 }
 
 // Renders the whole Results tab: the empty state, or the run's cards
-export function renderResults(data: ResultsData | undefined, resultsPath: string): string {
+export function renderResults(
+  data: ResultsData | undefined,
+  resultsPath: string,
+  projectUri: string
+): string {
   if (data === undefined) {
     return `<section class="card empty-state">
     <div>This project has not been run yet.</div>
@@ -290,7 +297,7 @@ export function renderResults(data: ResultsData | undefined, resultsPath: string
   </section>`;
   }
 
-  return `${data.criteria ? renderCriteria(data.criteria) : ""}` +
-    `${renderParameters(data.parameters)}` +
+  return `${data.criteria ? renderCriteria(data.criteria, projectUri) : ""}` +
+    `${renderParameters(data.parameters, projectUri)}` +
     `${data.correlation ? renderCorrelation(data.correlation) : ""}`;
 }

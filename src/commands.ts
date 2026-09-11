@@ -7,6 +7,14 @@ import { readRun } from "./modules/monolix/run";
 import { renderSummaryPage, STYLESHEETS as SIMULX_STYLESHEETS } from "./modules/simulx/page";
 import { readSummary } from "./modules/simulx/summary";
 
+// List UIR commands
+const COMMAND_URIS = [
+  "mlx-explorer.openInApp",
+  "mlx-explorer.openData",
+  "mlx-explorer.applyProjectFix",
+  "mlx-explorer.exportTable",
+];
+
 // Converts a module's stylesheet names into webview-safe resource URIs
 function assetsFor(
   webview: vscode.Webview,
@@ -38,11 +46,7 @@ export async function openRunPage(
       { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
       {
         enableFindWidget: true,
-        enableCommandUris: [
-          "mlx-explorer.openInApp",
-          "mlx-explorer.openData",
-          "mlx-explorer.applyProjectFix",
-        ],
+        enableCommandUris: COMMAND_URIS,
         // The stylesheets live in styles/: nothing else is reachable from the page.
         localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
       }
@@ -72,11 +76,7 @@ export async function openSummaryPage(
       { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
       {
         enableFindWidget: true,
-        enableCommandUris: [
-          "mlx-explorer.openInApp",
-          "mlx-explorer.openData",
-          "mlx-explorer.applyProjectFix",
-        ],
+        enableCommandUris: COMMAND_URIS,
         localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
       }
     )

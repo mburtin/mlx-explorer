@@ -2,7 +2,7 @@
   "name": "mlx-explorer",
   "displayName": "MLX Explorer",
   "description": "Visualize MonolixSuite projects in Positron.",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",
@@ -94,6 +94,11 @@
         "command": "mlx-explorer.moveSelection",
         "title": "Move selection",
         "category": "mlx Explorer"
+      },
+      {
+        "command": "mlx-explorer.exportTable",
+        "title": "Export table as image",
+        "category": "mlx Explorer"
       }
     ],
     "keybindings": [
@@ -170,8 +175,60 @@
         {
           "command": "mlx-explorer.moveSelection",
           "when": "false"
+        },
+        {
+          "command": "mlx-explorer.exportTable",
+          "when": "false"
         }
       ]
+    },
+    "configuration": {
+      "title": "mlx Explorer",
+      "properties": {
+        "mlx-explorer.export.ink": {
+          "type": "string",
+          "enum": [
+            "dark",
+            "light"
+          ],
+          "default": "dark",
+          "enumDescriptions": [
+            "Dark ink, for a light slide.",
+            "Light ink, for a dark slide."
+          ],
+          "markdownDescription": "Ink colour of an exported table. The background is always transparent, so this is only which way round the table has to read on the slide."
+        },
+        "mlx-explorer.export.significantDigits": {
+          "type": "number",
+          "default": 3,
+          "minimum": 2,
+          "maximum": 6,
+          "markdownDescription": "Significant figures for estimates in an exported table. Likelihood criteria keep two decimals instead: models are compared on a difference of a few units."
+        },
+        "mlx-explorer.export.pngScale": {
+          "type": "number",
+          "enum": [
+            1,
+            2,
+            3
+          ],
+          "default": 2,
+          "markdownDescription": "Pixel scale of an exported PNG. SVG is vector and ignores this."
+        },
+        "mlx-explorer.export.iiv": {
+          "type": "string",
+          "enum": [
+            "cv",
+            "omega"
+          ],
+          "default": "cv",
+          "enumDescriptions": [
+            "The CV (%) conversion of the random effect.",
+            "The raw omega value."
+          ],
+          "markdownDescription": "Which reading the IIV column of an exported table carries. The switch on the page cannot be read back by the extension, so this is a setting rather than a guess."
+        }
+      }
     }
   },
   "scripts": {

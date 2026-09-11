@@ -1,3 +1,4 @@
+import { renderExportLink } from "../../../common/exportLink";
 import { escapeHtml, numCell, stripe } from "../../../common/webview";
 import { scanNamedEntries } from "../entries";
 import { definitionLabel } from "../project";
@@ -79,7 +80,7 @@ export function readParameters(content: string): ParameterSet[] {
   return sets;
 }
 
-export function renderParameters(sets: ParameterSet[]): string {
+export function renderParameters(sets: ParameterSet[], projectUri: string): string {
   if (sets.length === 0) {
     return "";
   }
@@ -102,6 +103,7 @@ export function renderParameters(sets: ParameterSet[]): string {
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Population parameters</h2></summary>
+      ${renderExportLink(projectUri, "simulxParameters")}
       ${tables}
     </details>
   </section>`;

@@ -50,7 +50,7 @@ function renderNav(run: Run): string {
 
 export function renderRunPage(run: Run, assets: WebviewAssets, active = "results"): string {
   const panels =
-    `<div class="panel" id="panel-results">${renderResults(run.results, run.resultsPath)}</div>` +
+    `<div class="panel" id="panel-results">${renderResults(run.results, run.resultsPath, run.projectUri)}</div>` +
     (run.model ? `<div class="panel" id="panel-model">${renderModel(run.model)}</div>` : "") +
     `<div class="panel" id="panel-settings">${renderSettings(run.settings)}</div>`;
 

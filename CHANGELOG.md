@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [1.5.0]
 - Adds an Edit button on the Model tab
 - Adds syntax highlighting in the Model tab and in the text editor
 - Adds a Run descriptions page, fed by a hand-written `mlx-runs.json`
+- Fix a bug where a dataset change wasn't detect by 'Include external files' fix
 
 ## [1.4.0]
 - Adds the ability to export results as SVG or PNG images

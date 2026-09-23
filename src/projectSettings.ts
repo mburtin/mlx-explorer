@@ -21,6 +21,9 @@ const FLAG = "userFilesNextToProject";
 /** The tab the page opens on after a fix, so the run page comes back where it was left. */
 const SETTINGS_TAB = "settings";
 
+/** Holds a single dataset: Fix empties it, so a stale copy left there never blocks the new one. */
+const DATA_FOLDER = "DataFile";
+
 type State =
   /** Already inside the run, at the expected place. */
   | "placed"
@@ -66,7 +69,7 @@ async function check(
       ? "placed"
       : !(await exists(source))
         ? "missing"
-        : (await exists(target))
+        : file.folder !== DATA_FOLDER && (await exists(target))
           ? "conflict"
           : "misplaced";
 
@@ -185,8 +188,13 @@ async function gather(
   let updated = content;
 
   for (const { file, source, target } of misplaced) {
-    // ".." resolves to the folder holding the target. Recursive, and a no-op when it exists.
-    await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(target, ".."));
+    // ".." resolves to the folder holding the target.
+    const folder = vscode.Uri.joinPath(target, "..");
+    if (file.folder === DATA_FOLDER && (await exists(folder))) {
+      await vscode.workspace.fs.delete(folder, { recursive: true, useTrash: true });
+    }
+    // Recursive, and a no-op when it exists.
+    await vscode.workspace.fs.createDirectory(folder);
     await vscode.workspace.fs.copy(source, target);
     updated = replaceFileValue(updated, file.declared, declaredPath(projectUri, target));
   }

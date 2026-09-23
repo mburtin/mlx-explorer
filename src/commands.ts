@@ -12,6 +12,7 @@ import {
   renderRunIndexPage,
   runIndexUri,
   stylesheets as runIndexStylesheets,
+  syncRunIndex,
 } from "./runIndex";
 
 // List UIR commands
@@ -144,11 +145,12 @@ export async function openRunIndexPage(extensionUri: vscode.Uri, tool: Tool): Pr
       scanProjects(tool.glob, tool.identifies),
       readRunIndex(),
     ]);
+    const synced = await syncRunIndex(tool, runs, index);
     panel.title = `${tool.label} runs`;
     panel.webview.html = renderRunIndexPage(
       tool,
       runs,
-      index,
+      synced,
       assetsFor(panel.webview, extensionUri, runIndexStylesheets(tool))
     );
   };

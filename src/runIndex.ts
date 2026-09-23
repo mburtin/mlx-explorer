@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { exists, readText, scanProjects, writeText } from "./common/files";
+import { readText, scanProjects, writeText } from "./common/files";
 import { escapeHtml, renderDocument, stripe, WebviewAssets } from "./common/webview";
 import { Tool, TOOLS } from "./modules";
 
@@ -41,6 +41,36 @@ export async function readRunIndex(): Promise<RunIndex> {
   } catch (error) {
     return { entries: {}, error: `mlx-runs.json is not valid JSON: ${(error as Error).message}` };
   }
+}
+
+// Adds newly discovered runs to mlx-runs.json, keeping existing descriptions untouched.
+// Skipped when the file is malformed, so we don't clobber a file the user is mid-editing.
+export async function syncRunIndex(
+  tool: Tool,
+  runs: readonly vscode.Uri[],
+  index: RunIndex
+): Promise<RunIndex> {
+  const uri = runIndexUri();
+  if (!uri || index.error) {
+    return index;
+  }
+
+  const entries = { ...(index.entries[tool.id] ?? {}) };
+  let changed = false;
+  for (const run of runs) {
+    const key = runKey(run);
+    if (!(key in entries)) {
+      entries[key] = "";
+      changed = true;
+    }
+  }
+  if (!changed) {
+    return index;
+  }
+
+  const updated: RunIndex = { entries: { ...index.entries, [tool.id]: entries } };
+  await writeText(uri, JSON.stringify(updated.entries, null, 2) + "\n");
+  return updated;
 }
 
 export function renderRunIndexPage(
@@ -86,7 +116,7 @@ export function renderRunIndexPage(
   return renderDocument(title, assets, body);
 }
 
-// Opens mlx-runs.json, first creating it with an empty entry for every run found
+// Opens mlx-runs.json, first syncing in an empty entry for every run missing from it
 export async function editRunIndex(): Promise<void> {
   const uri = runIndexUri();
   if (!uri) {
@@ -94,15 +124,9 @@ export async function editRunIndex(): Promise<void> {
     return;
   }
 
-  if (!(await exists(uri))) {
-    const entries: Record<string, Record<string, string>> = {};
-    for (const tool of TOOLS) {
-      entries[tool.id] = {};
-      for (const project of await scanProjects(tool.glob, tool.identifies)) {
-        entries[tool.id][runKey(project)] = "";
-      }
-    }
-    await writeText(uri, JSON.stringify(entries, null, 2) + "\n");
+  let index = await readRunIndex();
+  for (const tool of TOOLS) {
+    index = await syncRunIndex(tool, await scanProjects(tool.glob, tool.identifies), index);
   }
 
   await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.Beside });

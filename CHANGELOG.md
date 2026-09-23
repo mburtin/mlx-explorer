@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.2]
+- Fix sync mlx-runs.json with new runs
+- Fix the title alignment in model panel 
+
 ## [1.5.1]
 - Fix several Keywords and Macros in syntax highlighting
 

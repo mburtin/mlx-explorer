@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.5.1]
+- Fix several Keywords and Macros in syntax highlighting
+
 ## [1.5.0]
 - Adds an Edit button on the Model tab
 - Adds syntax highlighting in the Model tab and in the text editor

@@ -1,17 +1,20 @@
 import { escapeHtml } from "./webview";
 
 // Keep in sync with syntaxes/mlxtran.tmLanguage.json
-const KEYWORDS = new Set(["if", "elseif", "else", "end"]);
-const FUNCTIONS = new Set([
+const CONDITIONS = new Set(["if", "elseif", "else", "end"]);
+const MACROS = new Set([
   "compartment", "peripheral", "oral", "iv", "depot", "elimination", "transfer", "effect",
-  "empty", "reset", "absorption", "pkmodel",
-  "exp", "log", "log10", "sqrt", "abs", "min", "max", "pow", "sin", "cos", "tan", "floor",
-  "ceil", "logit", "invlogit", "probit", "normcdf", "factorial", "gammaln", "delay",
+  "empty", "reset", "absorption", "pkmodel", "delay", "input", "output", "table", "correlation", 
+  "Seizure", "rightCensoringTime", "CountNumber", "level", "State", "Event"
 ]);
-const BUILTINS = new Set([
-  "t", "t0", "odeType", "use", "distribution", "prediction", "errorModel",
+const KEYWORDS = new Set([
+  "t", "t0", "odeType", "odeAbsTol", "use", "distribution", "prediction", "errorModel", "typical", "sd",
+  "adm", "target", "no-variability", "type", "eventType", "maxEventNumber", "categories", "dependence",
+  "hazard", "cmt", "amount", "volume", "concentration", "Tlag", "amtDose", "inftDose", "tDose",
+  "min", "max", "abs", "sqrt", "exp", "log", "log10", "logit", "invlogit", "probit", "normcdf", 
+  "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "atan2", "gammaln", "floor", 
+  "ceil", "factorial", "factln", "rem"
 ]);
-const BLOCKS = new Set(["input", "output", "table"]);
 
 // Token regex for general patterns (no ^ to avoid issues with alternation)
 const TOKEN = new RegExp(
@@ -20,7 +23,7 @@ const TOKEN = new RegExp(
     /(?<string>"[^"\n]*")/,
     /(?<section>\[[A-Za-z_]+\])/,
     /(?<number>\b\d+(?:\.\d*)?(?:[eE][+-]?\d+)?\b)/,
-    /(?<word>\b[A-Za-z_]\w*\b)/,
+    /(?<word>\bno-variability\b|\b[A-Za-z_]\w*\b)/,
   ].map((re) => re.source).join("|"),
   "gm"
 );
@@ -28,18 +31,18 @@ const TOKEN = new RegExp(
 // Regex for block labels at start of line: PK:, EQUATION:, etc.
 const BLOCK_LABEL = /^[ \t]*([A-Za-z_]+)(?=:)/;
 
-function wordClass(word: string, rest: string): string | undefined {
-  if (KEYWORDS.has(word)) {
+function wordClass(word: string, next: string): string | undefined {
+  if (word === "r" && next === "(") {
+    return "keyword";  // correlation = {r(A, B) = ...}
+  }
+  if (CONDITIONS.has(word)) {
+    return "condition";
+  }
+  if (MACROS.has(word)) {
+    return "macros";
+  }
+  if (KEYWORDS.has(word) || word.startsWith("ddt_")) {
     return "keyword";
-  }
-  if (FUNCTIONS.has(word)) {
-    return "function";
-  }
-  if (BUILTINS.has(word) || word.startsWith("ddt_")) {
-    return "builtin";
-  }
-  if (BLOCKS.has(word) && /^\s*=/.test(rest)) {
-    return "keyword";  // input =, output =, table =
   }
   return undefined;
 }
@@ -70,7 +73,7 @@ function highlightRest(text: string): string {
     const token = match[0];
     const start = match.index ?? 0;
     const kind = groups.word !== undefined
-      ? wordClass(token, text.slice(start + token.length, start + token.length + 8))
+      ? wordClass(token, text.charAt(start + token.length))
       : Object.keys(groups).find((name) => groups[name] !== undefined);
 
     html += escapeHtml(text.slice(last, start));

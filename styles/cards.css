@@ -75,12 +75,12 @@ pre.model {
   color: var(--mlx-accent);
   font-weight: 600;
 }
-.tk-keyword {
-  color: #0000ff;
+.tk-condition {
+  color: var(--vscode-symbolIcon-functionForeground, #795e26);
   font-weight: 500;
 }
-body.vscode-dark .tk-keyword, body.vscode-high-contrast .tk-keyword {
-  color: #569cd6;
+body.vscode-dark .tk-condition, body.vscode-high-contrast .tk-condition {
+  color: #dcdcaa;
 }
 .tk-label {
   color: #0000ff;
@@ -89,16 +89,16 @@ body.vscode-dark .tk-keyword, body.vscode-high-contrast .tk-keyword {
 body.vscode-dark .tk-label, body.vscode-high-contrast .tk-label {
   color: #569cd6;
 }
-.tk-function {
+.tk-macros {
   color: var(--vscode-symbolIcon-functionForeground, #795e26);
 }
-body.vscode-dark .tk-function, body.vscode-high-contrast .tk-function {
+body.vscode-dark .tk-macros, body.vscode-high-contrast .tk-macros {
   color: #dcdcaa;
 }
-.tk-builtin {
+.tk-keyword {
   color: var(--vscode-symbolIcon-variableForeground, #0070c1);
 }
-body.vscode-dark .tk-builtin, body.vscode-high-contrast .tk-builtin {
+body.vscode-dark .tk-keyword, body.vscode-high-contrast .tk-keyword {
   color: #9cdcfe;
 }
 .tk-number {

@@ -9,6 +9,7 @@ Browse [MonolixSuite](https://www.simulations-plus.com/software/monolix/) projec
 - **Model viewer** — Preview your model.
 - **Data viewer** — Use Positron DataExplorer to explore and analyze the data used in your run.
 - **Result export** — Export result tables as a SVG or PNG image, or copy them as R code.
+- **Run descriptions** — The `?` button in the Monolix or Simulx header lists the runs with a description, written by hand in `mlx-runs.json` at the workspace root:
 
 ## Requirements
 

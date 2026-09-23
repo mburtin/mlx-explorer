@@ -4,12 +4,14 @@ import {
   openDataExplorer,
   openInApp,
   openInFolder,
+  openRunIndexPage,
   openRunPage,
   openSummaryPage,
 } from "./commands";
 import { exportTable } from "./exportTable";
 import { applyProjectFix } from "./projectSettings";
 import { ProjectsProvider } from "./projectsTree";
+import { editRunIndex } from "./runIndex";
 import { TOOLS } from "./modules";
 
 interface ToolView {
@@ -67,6 +69,9 @@ export function activate(context: vscode.ExtensionContext): void {
           vscode.commands.executeCommand(tool.openCommand, uri);
         }
       }),
+      vscode.commands.registerCommand(`mlx-explorer.${tool.id}.showRunIndex`, () =>
+        openRunIndexPage(context.extensionUri, tool)
+      ),
       watcher,
       watcher.onDidCreate(() => provider.refresh()),
       watcher.onDidDelete(() => provider.refresh()),
@@ -94,6 +99,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("mlx-explorer.applyProjectFix", applyProjectFix),
     vscode.commands.registerCommand("mlx-explorer.openData", openDataExplorer),
     vscode.commands.registerCommand("mlx-explorer.editModel", editModel),
+    vscode.commands.registerCommand("mlx-explorer.editRunIndex", editRunIndex),
     vscode.commands.registerCommand(
       "mlx-explorer.exportTable",
       (projectUri: string, section: string, setName?: string) =>

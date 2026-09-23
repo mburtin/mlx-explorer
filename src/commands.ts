@@ -1,12 +1,18 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { exists, readText } from "./common/files";
+import { exists, readText, scanProjects } from "./common/files";
 import { showPanel, WebviewAssets } from "./common/webview";
-import { runFolder, toolFor } from "./modules";
+import { runFolder, Tool, toolFor } from "./modules";
 import { renderRunPage, STYLESHEETS as MONOLIX_STYLESHEETS } from "./modules/monolix/page";
 import { readRun, Run } from "./modules/monolix/run";
 import { renderSummaryPage, STYLESHEETS as SIMULX_STYLESHEETS } from "./modules/simulx/page";
 import { readSummary, Summary } from "./modules/simulx/summary";
+import {
+  readRunIndex,
+  renderRunIndexPage,
+  runIndexUri,
+  stylesheets as runIndexStylesheets,
+} from "./runIndex";
 
 // List UIR commands
 const COMMAND_URIS = [
@@ -116,6 +122,38 @@ function showSummary(
   watchModel(panel, summary.model?.uri, async () =>
     showSummary(panel, extensionUri, projectUri, await readSummary(projectUri), "model")
   );
+}
+
+// Opens the page listing a tool's runs with the descriptions from mlx-runs.json
+export async function openRunIndexPage(extensionUri: vscode.Uri, tool: Tool): Promise<void> {
+  const panel = showPanel("mlx-explorer.runIndex", () =>
+    vscode.window.createWebviewPanel(
+      "mlx-explorer.runIndex",
+      `${tool.label} runs`,
+      { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
+      {
+        enableFindWidget: true,
+        enableCommandUris: ["mlx-explorer.editRunIndex"],
+        localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles")],
+      }
+    )
+  );
+
+  const render = async () => {
+    const [runs, index] = await Promise.all([
+      scanProjects(tool.glob, tool.identifies),
+      readRunIndex(),
+    ]);
+    panel.title = `${tool.label} runs`;
+    panel.webview.html = renderRunIndexPage(
+      tool,
+      runs,
+      index,
+      assetsFor(panel.webview, extensionUri, runIndexStylesheets(tool))
+    );
+  };
+  await render();
+  watchModel(panel, runIndexUri()?.toString(), render);
 }
 
 // A panel's model watcher, replaced on every render: the panel may now show another project

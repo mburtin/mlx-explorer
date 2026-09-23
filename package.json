@@ -77,6 +77,23 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "mlx-explorer.monolix.showRunIndex",
+        "title": "Run descriptions",
+        "category": "mlx Explorer",
+        "icon": "$(question)"
+      },
+      {
+        "command": "mlx-explorer.simulx.showRunIndex",
+        "title": "Run descriptions",
+        "category": "mlx Explorer",
+        "icon": "$(question)"
+      },
+      {
+        "command": "mlx-explorer.editRunIndex",
+        "title": "Edit run descriptions",
+        "category": "mlx Explorer"
+      },
+      {
         "command": "mlx-explorer.openRun",
         "title": "Open run results",
         "category": "mlx Explorer"
@@ -151,9 +168,19 @@
     "menus": {
       "view/title": [
         {
+          "command": "mlx-explorer.monolix.showRunIndex",
+          "when": "view == mlx-explorer.monolix",
+          "group": "navigation@0"
+        },
+        {
+          "command": "mlx-explorer.simulx.showRunIndex",
+          "when": "view == mlx-explorer.simulx",
+          "group": "navigation@0"
+        },
+        {
           "command": "mlx-explorer.refreshProjects",
           "when": "view == mlx-explorer.monolix || view == mlx-explorer.simulx",
-          "group": "navigation"
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [

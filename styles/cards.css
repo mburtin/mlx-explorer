@@ -63,12 +63,62 @@ pre.model {
   line-height: 1.5;
   color: var(--vscode-editor-foreground, var(--vscode-foreground));
 }
+.btn-edit { margin-left: auto; align-self: center; }
+
+/* Mlxtran tokens. Webviews get no editor token colours, so these fallback to
+   explicit colors chosen for both light and dark themes. */
+.tk-comment {
+  color: var(--vscode-descriptionForeground, #666666);
+  font-style: italic;
+}
+.tk-section {
+  color: var(--mlx-accent);
+  font-weight: 600;
+}
+.tk-keyword {
+  color: #0000ff;
+  font-weight: 500;
+}
+body.vscode-dark .tk-keyword, body.vscode-high-contrast .tk-keyword {
+  color: #569cd6;
+}
+.tk-label {
+  color: #0000ff;
+  font-weight: 500;
+}
+body.vscode-dark .tk-label, body.vscode-high-contrast .tk-label {
+  color: #569cd6;
+}
+.tk-function {
+  color: var(--vscode-symbolIcon-functionForeground, #795e26);
+}
+body.vscode-dark .tk-function, body.vscode-high-contrast .tk-function {
+  color: #dcdcaa;
+}
+.tk-builtin {
+  color: var(--vscode-symbolIcon-variableForeground, #0070c1);
+}
+body.vscode-dark .tk-builtin, body.vscode-high-contrast .tk-builtin {
+  color: #9cdcfe;
+}
+.tk-number {
+  color: var(--vscode-debugTokenExpression-number, #098658);
+}
+body.vscode-dark .tk-number, body.vscode-high-contrast .tk-number {
+  color: #b5cea8;
+}
+.tk-string {
+  color: var(--vscode-debugTokenExpression-string, #a31515);
+}
+body.vscode-dark .tk-string, body.vscode-high-contrast .tk-string {
+  color: #ce9178;
+}
 
 .empty-state { padding: 32px 24px; text-align: center; }
 .empty-state .path { margin-top: 8px; }
 
-/* The export link: an icon button on the card header */
-.btn-export {
+/* The export and edit links: icon buttons on the card header */
+.btn-export, .btn-edit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -79,7 +129,7 @@ pre.model {
   text-decoration: none;
   transition: background 0.12s ease, color 0.12s ease;
 }
-.btn-export:hover { color: var(--mlx-accent); background: var(--mlx-hover); }
+.btn-export:hover, .btn-edit:hover { color: var(--mlx-accent); background: var(--mlx-hover); }
 details > .btn-export { position: absolute; top: 7px; right: 12px; z-index: 1; }
 /* The parameters card carries both controls; the icon steps aside for the switch. */
 details:has(.cv-switch) > .btn-export { right: 108px; }

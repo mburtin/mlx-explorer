@@ -1,11 +1,12 @@
+import * as path from "path";
 import * as vscode from "vscode";
 import { exists, readText } from "./common/files";
 import { showPanel, WebviewAssets } from "./common/webview";
 import { runFolder, toolFor } from "./modules";
 import { renderRunPage, STYLESHEETS as MONOLIX_STYLESHEETS } from "./modules/monolix/page";
-import { readRun } from "./modules/monolix/run";
+import { readRun, Run } from "./modules/monolix/run";
 import { renderSummaryPage, STYLESHEETS as SIMULX_STYLESHEETS } from "./modules/simulx/page";
-import { readSummary } from "./modules/simulx/summary";
+import { readSummary, Summary } from "./modules/simulx/summary";
 
 // List UIR commands
 const COMMAND_URIS = [
@@ -13,6 +14,7 @@ const COMMAND_URIS = [
   "mlx-explorer.openData",
   "mlx-explorer.applyProjectFix",
   "mlx-explorer.exportTable",
+  "mlx-explorer.editModel",
 ];
 
 // Converts a module's stylesheet names into webview-safe resource URIs
@@ -53,11 +55,24 @@ export async function openRunPage(
     )
   );
 
+  showRun(panel, extensionUri, projectUri, run, activeTab);
+}
+
+function showRun(
+  panel: vscode.WebviewPanel,
+  extensionUri: vscode.Uri,
+  projectUri: vscode.Uri,
+  run: Run,
+  activeTab?: string
+): void {
   panel.title = run.name;
   panel.webview.html = renderRunPage(
     run,
     assetsFor(panel.webview, extensionUri, MONOLIX_STYLESHEETS),
     activeTab
+  );
+  watchModel(panel, run.model?.uri, async () =>
+    showRun(panel, extensionUri, projectUri, await readRun(projectUri), "model")
   );
 }
 
@@ -82,12 +97,53 @@ export async function openSummaryPage(
     )
   );
 
+  showSummary(panel, extensionUri, projectUri, summary, activeTab);
+}
+
+function showSummary(
+  panel: vscode.WebviewPanel,
+  extensionUri: vscode.Uri,
+  projectUri: vscode.Uri,
+  summary: Summary,
+  activeTab?: string
+): void {
   panel.title = summary.name;
   panel.webview.html = renderSummaryPage(
     summary,
     assetsFor(panel.webview, extensionUri, SIMULX_STYLESHEETS),
     activeTab
   );
+  watchModel(panel, summary.model?.uri, async () =>
+    showSummary(panel, extensionUri, projectUri, await readSummary(projectUri), "model")
+  );
+}
+
+// A panel's model watcher, replaced on every render: the panel may now show another project
+const modelWatchers = new WeakMap<vscode.WebviewPanel, vscode.Disposable | undefined>();
+
+// Re-renders the panel when its model file changes, saved from Positron or from the app.
+// The page has no script to report its open tab, so it comes back on the Model tab.
+function watchModel(
+  panel: vscode.WebviewPanel,
+  modelUri: string | undefined,
+  rerender: () => Promise<void>
+): void {
+  if (!modelWatchers.has(panel)) {
+    panel.onDidDispose(() => modelWatchers.get(panel)?.dispose());
+  }
+  modelWatchers.get(panel)?.dispose();
+  modelWatchers.set(panel, undefined);
+  if (modelUri === undefined) {
+    return;
+  }
+
+  const uri = vscode.Uri.parse(modelUri);
+  const watcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(vscode.Uri.joinPath(uri, ".."), path.basename(uri.path))
+  );
+  watcher.onDidChange(rerender);
+  watcher.onDidCreate(rerender);
+  modelWatchers.set(panel, watcher);
 }
 
 // Command to open a csv file in the data explorer of Positron
@@ -115,4 +171,11 @@ export async function openInFolder(target: unknown): Promise<void> {
     // Not run yet, or the results were moved: fall back to revealing the project file.
     await vscode.commands.executeCommand("revealFileInOS", projectUri);
   }
+}
+
+// Command to open a model file beside the page, as Mlxtran: model files are plain .txt
+export async function editModel(target: unknown): Promise<void> {
+  const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(String(target)));
+  await vscode.languages.setTextDocumentLanguage(document, "mlxtran");
+  await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
 }

@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
 import { readText, resolveProjectPath } from "../../../common/files";
+import { renderEditLink } from "../../../common/editLink";
+import { highlight } from "../../../common/mlxtranHighlight";
 import { escapeHtml } from "../../../common/webview";
 import { parseModelFile } from "../project";
 
 export interface ModelFile {
   path: string;
+  uri: string;
   text: string;
 }
 
@@ -27,17 +30,17 @@ export async function readModel(
   // Model moved, or the project comes from another machine.
   return text === undefined
     ? undefined
-    : { path: vscode.workspace.asRelativePath(uri), text };
+    : { path: vscode.workspace.asRelativePath(uri), uri: uri.toString(), text };
 }
 
 /**
- * The model file as it sits on disk: escaped, and nothing else. No <details> here -
+ * The model file as it sits on disk, highlighted. No <details> here -
  * collapsing is what lets several cards be scanned on one page, and this panel holds
  * exactly one card.
  */
 export function renderModel(model: ModelFile): string {
   return `<section class="card">
-    <div class="card-head"><h2>Model</h2><span class="note">${escapeHtml(model.path)}</span></div>
-    <pre class="model">${escapeHtml(model.text)}</pre>
+    <div class="card-head"><h2>Model</h2><span class="note">${escapeHtml(model.path)}</span>${renderEditLink(model.uri)}</div>
+    <pre class="model">${highlight(model.text)}</pre>
   </section>`;
 }

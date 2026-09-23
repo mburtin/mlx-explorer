@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Mlxtran",
+  "scopeName": "source.mlxtran",
+  "comment": "Keep the word lists in sync with src/common/mlxtranHighlight.ts",
+  "patterns": [
+    { "name": "comment.line.semicolon.mlxtran", "match": ";.*$" },
+    { "name": "string.quoted.double.mlxtran", "match": "\"[^\"]*\"" },
+    { "name": "entity.name.section.mlxtran", "match": "\\[[A-Za-z_]+\\]" },
+    { "name": "entity.name.section.mlxtran", "match": "^\\s*[A-Za-z_]+(?=:)" },
+    { "name": "keyword.other.block.mlxtran", "match": "\\b(input|output|table)\\b(?=\\s*=)" },
+    { "name": "keyword.control.mlxtran", "match": "\\b(if|elseif|else|end)\\b" },
+    {
+      "name": "support.function.mlxtran",
+      "match": "\\b(compartment|peripheral|oral|iv|depot|elimination|transfer|effect|empty|reset|absorption|pkmodel|exp|log|log10|sqrt|abs|min|max|pow|sin|cos|tan|floor|ceil|logit|invlogit|probit|normcdf|factorial|gammaln|delay)\\b"
+    },
+    {
+      "name": "variable.language.mlxtran",
+      "match": "\\b(ddt_\\w+|t|t0|odeType|use|distribution|prediction|errorModel)\\b"
+    },
+    { "name": "constant.numeric.mlxtran", "match": "\\b\\d+(\\.\\d*)?([eE][+-]?\\d+)?\\b" }
+  ]
+}

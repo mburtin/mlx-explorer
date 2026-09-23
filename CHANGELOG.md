@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+- Adds an Edit button on the Model tab
+- Adds syntax highlighting in the Model tab and in the text editor
+
 ## [1.4.0]
 - Adds the ability to export results as SVG or PNG images
 - Adds a 'Copy R code' action: the table as a self-contained R data.frame

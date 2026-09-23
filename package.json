@@ -2,7 +2,7 @@
   "name": "mlx-explorer",
   "displayName": "MLX Explorer",
   "description": "Visualize MonolixSuite projects in Positron.",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",
@@ -43,6 +43,22 @@
         }
       ]
     },
+    "languages": [
+      {
+        "id": "mlxtran",
+        "aliases": [
+          "Mlxtran"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mlxtran",
+        "scopeName": "source.mlxtran",
+        "path": "./syntaxes/mlxtran.tmLanguage.json"
+      }
+    ],
     "viewsWelcome": [
       {
         "view": "mlx-explorer.monolix",
@@ -98,6 +114,11 @@
       {
         "command": "mlx-explorer.exportTable",
         "title": "Export table as image",
+        "category": "mlx Explorer"
+      },
+      {
+        "command": "mlx-explorer.editModel",
+        "title": "Edit model",
         "category": "mlx Explorer"
       }
     ],
@@ -179,8 +200,46 @@
         {
           "command": "mlx-explorer.exportTable",
           "when": "false"
+        },
+        {
+          "command": "mlx-explorer.editModel",
+          "when": "false"
         }
       ]
+    },
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": "comment.line.semicolon.mlxtran",
+            "settings": { "foreground": "#8c8c8c", "fontStyle": "italic" }
+          },
+          {
+            "scope": "string.quoted.double.mlxtran",
+            "settings": { "foreground": "#a31515" }
+          },
+          {
+            "scope": "entity.name.section.mlxtran",
+            "settings": { "foreground": "#1088ab", "fontStyle": "bold" }
+          },
+          {
+            "scope": ["keyword.other.block.mlxtran", "keyword.control.mlxtran"],
+            "settings": { "foreground": "#0000ff" }
+          },
+          {
+            "scope": "support.function.mlxtran",
+            "settings": { "foreground": "#795e26" }
+          },
+          {
+            "scope": "variable.language.mlxtran",
+            "settings": { "foreground": "#0070c1" }
+          },
+          {
+            "scope": "constant.numeric.mlxtran",
+            "settings": { "foreground": "#098658" }
+          }
+        ]
+      }
     },
     "configuration": {
       "title": "mlx Explorer",

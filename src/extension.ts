@@ -1,5 +1,12 @@
 import * as vscode from "vscode";
-import { openDataExplorer, openInApp, openInFolder, openRunPage, openSummaryPage } from "./commands";
+import {
+  editModel,
+  openDataExplorer,
+  openInApp,
+  openInFolder,
+  openRunPage,
+  openSummaryPage,
+} from "./commands";
 import { exportTable } from "./exportTable";
 import { applyProjectFix } from "./projectSettings";
 import { ProjectsProvider } from "./projectsTree";
@@ -86,6 +93,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("mlx-explorer.openInFolder", openInFolder),
     vscode.commands.registerCommand("mlx-explorer.applyProjectFix", applyProjectFix),
     vscode.commands.registerCommand("mlx-explorer.openData", openDataExplorer),
+    vscode.commands.registerCommand("mlx-explorer.editModel", editModel),
     vscode.commands.registerCommand(
       "mlx-explorer.exportTable",
       (projectUri: string, section: string, setName?: string) =>

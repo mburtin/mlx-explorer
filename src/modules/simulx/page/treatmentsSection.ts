@@ -1,11 +1,13 @@
-import { escapeHtml, stripe } from "../../../common/webview";
+import { escapeHtml } from "../../../common/webview";
 import { scanNamedEntries } from "../entries";
-import { definitionLabel } from "../project";
+import { definitionLabel, simulatedNames } from "../project";
+import { renderToggledBodies, SIMULATED_TOGGLE } from "./simulatedToggle";
 
 export interface Treatment {
   name: string;
   adm: string;
   schedule: string;
+  simulated: boolean;
 }
 
 function numberList(raw: string): string[] {
@@ -66,12 +68,13 @@ export function readTreatments(content: string): Treatment[] {
     return [];
   }
 
+  const simulated = simulatedNames(content, "treatment");
   const treatments: Treatment[] = [];
   for (const entry of scanNamedEntries(treatment)) {
     const adm = /adm\s*=\s*(\d+)/.exec(entry.body)?.[1];
     const schedule = explicitSchedule(entry.body) ?? repeatedSchedule(entry.body);
     if (adm !== undefined && schedule !== undefined) {
-      treatments.push({ name: entry.name, adm, schedule });
+      treatments.push({ name: entry.name, adm, schedule, simulated: simulated.has(entry.name) });
     }
   }
 
@@ -83,18 +86,17 @@ export function renderTreatments(treatments: Treatment[]): string {
     return "";
   }
 
-  const rows = treatments
-    .map((t, i) =>
-      `<tr${stripe(i)}><td>${escapeHtml(t.name)}</td>` +
-      `<td class="num">${escapeHtml(t.adm)}</td><td>${escapeHtml(t.schedule)}</td></tr>`
-    )
-    .join("");
+  const rows = renderToggledBodies(treatments, (t, alt) =>
+    `<tr${alt}><td>${escapeHtml(t.name)}</td>` +
+    `<td class="num">${escapeHtml(t.adm)}</td><td>${escapeHtml(t.schedule)}</td></tr>`
+  );
 
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Treatments</h2></summary>
+      ${SIMULATED_TOGGLE}
       <table><thead><tr><th>Treatment</th><th class="num">Adm</th><th>Schedule</th></tr></thead>
-      <tbody>${rows}</tbody></table>
+      ${rows}</table>
     </details>
   </section>`;
 }

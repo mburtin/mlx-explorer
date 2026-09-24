@@ -83,3 +83,7 @@ td.warn { color: var(--mlx-warn); }
 .iiv-cv, .iiv-raw { display: inline; }
 .card:has(.cv-toggle:checked) .iiv-raw { display: none; }
 .card:not(:has(.cv-toggle:checked)) .iiv-cv { display: none; }
+
+/* Simulated switch: checked shows only the entries a simulation group uses. */
+.card:has(.sim-toggle:checked) .rows-all { display: none; }
+.card:not(:has(.sim-toggle:checked)) .rows-simulated { display: none; }

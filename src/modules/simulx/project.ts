@@ -42,6 +42,25 @@ export function definitionLabel(content: string, name: string): string | undefin
 }
 
 /**
+ * Names the `[SIMULATION] GROUPS:` entries actually use for one key (`outputs`, `treatment`).
+ * A definition that no group references is recorded in the project but never simulated.
+ */
+export function simulatedNames(content: string, key: "outputs" | "treatment"): Set<string> {
+  const simulx = section(content, "SIMULX");
+  const simulation = simulx === undefined ? undefined : block(simulx, "SIMULATION");
+  const groups = simulation === undefined ? undefined : label(simulation, "GROUPS");
+
+  const names = new Set<string>();
+  for (const entry of groups === undefined ? [] : scanNamedEntries(groups)) {
+    const list = new RegExp(`${key}\\s*=\\s*\\{([^{}]*)\\}`).exec(entry.body)?.[1] ?? "";
+    for (const [, name] of list.matchAll(/'([^']+)'/g)) {
+      names.add(name);
+    }
+  }
+  return names;
+}
+
+/**
  * The files a Simulx project brings in: the structural model, plus every table an entry
  * reads from disk - a regressor, a parameter set, a treatment. One scan over `[DEFINITION]`
  * covers them all. A library model is not a path, so there is nothing to gather for it.

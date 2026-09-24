@@ -1,6 +1,7 @@
-import { escapeHtml, stripe } from "../../../common/webview";
+import { escapeHtml } from "../../../common/webview";
 import { scanNamedEntries } from "../entries";
-import { definitionLabel } from "../project";
+import { definitionLabel, simulatedNames } from "../project";
+import { renderToggledBodies, SIMULATED_TOGGLE } from "./simulatedToggle";
 
 export interface OutputDef {
   name: string;
@@ -8,6 +9,7 @@ export interface OutputDef {
   start: string;
   interval: string;
   final: string;
+  simulated: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ export function readOutputs(content: string): OutputDef[] {
     return [];
   }
 
+  const simulated = simulatedNames(content, "outputs");
   const outputs: OutputDef[] = [];
   for (const entry of scanNamedEntries(output)) {
     const variable = /output\s*=\s*([^,}]+)/.exec(entry.body)?.[1]?.trim();
@@ -28,7 +31,9 @@ export function readOutputs(content: string): OutputDef[] {
     const interval = /interval\s*=\s*([\d.eE+-]+)/.exec(entry.body)?.[1];
     const final = /final\s*=\s*([\d.eE+-]+)/.exec(entry.body)?.[1];
     if (variable !== undefined && start !== undefined && interval !== undefined && final !== undefined) {
-      outputs.push({ name: entry.name, variable, start, interval, final });
+      outputs.push({
+        name: entry.name, variable, start, interval, final, simulated: simulated.has(entry.name)
+      });
     }
   }
 
@@ -40,19 +45,18 @@ export function renderOutputs(outputs: OutputDef[]): string {
     return "";
   }
 
-  const rows = outputs
-    .map((o, i) => {
-      const grid = `${o.start} → ${o.final} (step ${o.interval})`;
-      return `<tr${stripe(i)}><td>${escapeHtml(o.name)}</td>` +
-        `<td>${escapeHtml(o.variable)}</td><td>${escapeHtml(grid)}</td></tr>`;
-    })
-    .join("");
+  const rows = renderToggledBodies(outputs, (o, alt) => {
+    const grid = `${o.start} → ${o.final} (step ${o.interval})`;
+    return `<tr${alt}><td>${escapeHtml(o.name)}</td>` +
+      `<td>${escapeHtml(o.variable)}</td><td>${escapeHtml(grid)}</td></tr>`;
+  });
 
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Outputs</h2></summary>
+      ${SIMULATED_TOGGLE}
       <table><thead><tr><th>Output</th><th>Variable</th><th>Time grid</th></tr></thead>
-      <tbody>${rows}</tbody></table>
+      ${rows}</table>
     </details>
   </section>`;
 }

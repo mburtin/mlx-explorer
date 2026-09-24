@@ -4,7 +4,7 @@
   border-radius: 6px;
   background: linear-gradient(var(--mlx-tint), var(--mlx-tint)),
     var(--vscode-editorWidget-background, var(--vscode-editor-background));
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 /* Anchors .cv-switch to the header row: <summary> is the first child, so top:0

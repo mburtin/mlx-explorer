@@ -2,7 +2,7 @@
   "name": "mlx-explorer",
   "displayName": "MLX Explorer",
   "description": "Visualize MonolixSuite projects in Positron.",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.4]
+- Fix table header during horizontal scrolling
+- Add a filter to display only simulated treatments and outputs for Simulx
+
 ## [1.5.3]
 - Fix horizontal scrolling for truncated tables
 

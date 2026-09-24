@@ -5,11 +5,14 @@
   background: linear-gradient(var(--mlx-tint), var(--mlx-tint)),
     var(--vscode-editorWidget-background, var(--vscode-editor-background));
   overflow-x: auto;
+  display: grid;
+  grid-template-columns: minmax(100%, max-content);
 }
 
 /* Anchors .cv-switch to the header row: <summary> is the first child, so top:0
    here lines up with the top of the card-head regardless of the card's total height. */
 details { position: relative; }
+.card > details { min-width: max-content; }
 .card-head {
   display: flex;
   align-items: center;
@@ -21,6 +24,9 @@ details { position: relative; }
 
 /* Only a <summary> head toggles anything: the Model card's is a plain div, and a
    pointer cursor on it would promise a click that does nothing. */
+.card:has(.btn-export) .card-head { padding-right: 3rem; }
+.card:has(.cv-switch) .card-head { padding-right: 9.5rem; }
+.card:has(.cv-switch):has(.btn-export) .card-head { padding-right: 11.5rem; }
 summary.card-head { cursor: pointer; list-style: none; }
 summary.card-head::-webkit-details-marker { display: none; }
 .chevron {
@@ -132,4 +138,4 @@ body.vscode-dark .tk-string, body.vscode-high-contrast .tk-string {
 .btn-export:hover, .btn-edit:hover { color: var(--mlx-accent); background: var(--mlx-hover); }
 details > .btn-export { position: absolute; top: 7px; right: 12px; z-index: 1; }
 /* The parameters card carries both controls; the icon steps aside for the switch. */
-details:has(.cv-switch) > .btn-export { right: 108px; }
+details:has(.cv-switch) > .btn-export { right: 132px; }

@@ -3,6 +3,7 @@ import { Run } from "../run";
 import { TOOL } from "../project";
 import { renderModel } from "./modelTab";
 import { renderResults } from "./resultsTab";
+import { renderTests } from "./testsTab";
 import { renderSettings } from "../../../projectSettings";
 
 /** 
@@ -28,12 +29,16 @@ function renderTabState(run: Run, active: string): string {
   const radio = (id: string) =>
     `<input type="radio" name="tab" id="tab-${id}" class="tab-state"` +
     `${active === id ? " checked" : ""}>`;
-  return radio("results") + (run.model ? radio("model") : "") + radio("settings");
+  return radio("results") + (run.tests ? radio("tests") : "") + (run.model ? radio("model") : "") +
+    radio("settings");
 }
 
 // Data section is a link, not a panel. We used Positron data explorer
 function renderNav(run: Run): string {
   const tabs = ['<label class="tab" for="tab-results">Results</label>'];
+  if (run.tests) {
+    tabs.push('<label class="tab" for="tab-tests">Tests</label>');
+  }
   if (run.dataUri) {
     // Command uris carry JSON arguments, so the dataset URI need to be a string
     const args = encodeURIComponent(JSON.stringify([run.dataUri]));
@@ -51,6 +56,7 @@ function renderNav(run: Run): string {
 export function renderRunPage(run: Run, assets: WebviewAssets, active = "results"): string {
   const panels =
     `<div class="panel" id="panel-results">${renderResults(run.results, run.resultsPath, run.projectUri)}</div>` +
+    (run.tests ? `<div class="panel" id="panel-tests">${renderTests(run.tests)}</div>` : "") +
     (run.model ? `<div class="panel" id="panel-model">${renderModel(run.model)}</div>` : "") +
     `<div class="panel" id="panel-settings">${renderSettings(run.settings)}</div>`;
 

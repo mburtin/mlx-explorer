@@ -23,6 +23,18 @@ export function stripe(index: number): string {
   return index % 2 === 1 ? ' class="alt"' : "";
 }
 
+const INFO_ICON =
+  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" ' +
+  'stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/>' +
+  '<path d="M8 7.3v4"/><circle cx="8" cy="4.9" r="0.35" fill="currentColor"/></svg>';
+
+// An info icon showing `text` in a bubble on hover. The bubble is plain CSS: the page runs no
+// script, and Positron's webviews don't show native title tooltips. A button rather than a
+// span: clicking it inside a <summary> would otherwise fold the card.
+export function infoIcon(text: string): string {
+  return `<button type="button" class="info">${INFO_ICON}<span class="info-bubble">${escapeHtml(text)}</span></button>`;
+}
+
 export interface WebviewAssets {
   // Stylesheet hrefs, already webview uris, in cascade order
   readonly styles: readonly string[];

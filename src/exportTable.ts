@@ -3,7 +3,8 @@ import * as vscode from "vscode";
 import { Section } from "./common/exportLink";
 import { readText, writeText } from "./common/files";
 import { rasterize } from "./common/rasterize";
-import { ExportColumn, ExportTable, renderSvgTable } from "./common/svgTable";
+import { renderSvgMatrix } from "./common/svgMatrix";
+import { ExportColumn, ExportTable, Rendered, renderSvgTable, SvgOptions } from "./common/svgTable";
 import { Table } from "./common/table";
 import { rCode } from "./exportR";
 import { runFolder, toolFor } from "./modules";
@@ -50,6 +51,9 @@ function parametersTable(view: ParameterView, config: ExportSettings): ExportTab
     if (view.hasRse) {
       columns.push({ header: "RSE (%)", format: numeric(config.digits), group: "IIV" });
     }
+    if (view.hasShrinkage) {
+      columns.push({ header: "Shrinkage (%)", format: numeric(config.digits), group: "IIV" });
+    }
   }
 
   const rows = view.rows.map((row) => {
@@ -61,6 +65,9 @@ function parametersTable(view: ParameterView, config: ExportSettings): ExportTab
       cells.push(config.iiv === "cv" ? row.iiv : row.iivValue);
       if (view.hasRse) {
         cells.push(row.iivRse);
+      }
+      if (view.hasShrinkage) {
+        cells.push(row.shrinkage);
       }
     }
     return cells;
@@ -107,6 +114,17 @@ function simulxTable(set: ParameterSet, config: ExportSettings): ExportTable {
   };
 }
 
+/** What an export link resolves to. Only a table has an R form: the matrix is an image only. */
+interface Exportable {
+  title: string;
+  render: (options: SvgOptions) => Rendered;
+  table?: ExportTable;
+}
+
+function fromTable(table: ExportTable): Exportable {
+  return { title: table.title, render: (options) => renderSvgTable(table, options), table };
+}
+
 /**
  * One card holds every parameter set Simulx declares, so a single link on its header has
  * to ask which one when there is more than one. With a single set - the common case - it
@@ -143,7 +161,7 @@ async function readSection(
   section: Section,
   setName: string | undefined,
   config: ExportSettings
-): Promise<ExportTable | undefined | null> {
+): Promise<Exportable | undefined | null> {
   const tool = toolFor(projectUri);
   const content = tool === undefined ? undefined : await readText(projectUri);
   if (tool === undefined || content === undefined) {
@@ -155,7 +173,7 @@ async function readSection(
     if (set === null) {
       return null;
     }
-    return set === undefined ? undefined : simulxTable(set, config);
+    return set === undefined ? undefined : fromTable(simulxTable(set, config));
   }
 
   const results = await readResults(runFolder(projectUri, content, tool).uri);
@@ -163,9 +181,15 @@ async function readSection(
     return undefined;
   }
   if (section === "criteria") {
-    return results.criteria === undefined ? undefined : criteriaTable(results.criteria);
+    return results.criteria === undefined ? undefined : fromTable(criteriaTable(results.criteria));
   }
-  return parametersTable(results.parameters, config);
+  if (section === "correlation") {
+    const matrix = results.correlation;
+    return matrix === undefined
+      ? undefined
+      : { title: "Correlation matrix", render: (options) => renderSvgMatrix(matrix, options) };
+  }
+  return fromTable(parametersTable(results.parameters, config));
 }
 
 /** `warfarin_project` + "Model parameters" -> `warfarin_project-model-parameters`. */
@@ -177,12 +201,12 @@ function fileStem(projectUri: vscode.Uri, title: string): string {
 
 async function askWhereToSave(
   projectUri: vscode.Uri,
-  table: ExportTable,
+  title: string,
   extension: "svg" | "png"
 ): Promise<vscode.Uri | undefined> {
   return vscode.window.showSaveDialog({
     // Next to the project, which is where the run's other outputs already live.
-    defaultUri: vscode.Uri.joinPath(projectUri, "..", `${fileStem(projectUri, table.title)}.${extension}`),
+    defaultUri: vscode.Uri.joinPath(projectUri, "..", `${fileStem(projectUri, title)}.${extension}`),
     // One filter, because the format was already chosen: the dialog never has to guess it
     // back from an extension the user might mistype.
     filters: { [`${extension.toUpperCase()} image`]: [extension] },
@@ -215,8 +239,8 @@ interface ExportContext {
   config: ExportSettings;
 }
 
-function actions(config: ExportSettings): (vscode.QuickPickItem & { id: Action })[] {
-  return [
+function actions(config: ExportSettings, withR: boolean): (vscode.QuickPickItem & { id: Action })[] {
+  const all: (vscode.QuickPickItem & { id: Action })[] = [
     {
       id: "png",
       label: "$(file-media) Save as PNG…",
@@ -229,16 +253,19 @@ function actions(config: ExportSettings): (vscode.QuickPickItem & { id: Action }
       detail: "A self-contained data.frame, at full precision",
     },
   ];
+  return withR ? all : all.filter((action) => action.id !== "r");
 }
 
-async function run(action: Action, table: ExportTable, context: ExportContext): Promise<void> {
+async function run(action: Action, exportable: Exportable, context: ExportContext): Promise<void> {
   const { config, projectUri } = context;
 
   // No image to build for this one, and askWhereToSave below only knows the two file
-  // formats - so it leaves early.
+  // formats - so it leaves early. It is only offered for a table.
   if (action === "r") {
-    await vscode.env.clipboard.writeText(rCode(table, projectUri, context.section));
-    await vscode.window.showInformationMessage("R code copied. Paste it into your script.");
+    if (exportable.table) {
+      await vscode.env.clipboard.writeText(rCode(exportable.table, projectUri, context.section));
+      await vscode.window.showInformationMessage("R code copied. Paste it into your script.");
+    }
     return;
   }
 
@@ -246,9 +273,9 @@ async function run(action: Action, table: ExportTable, context: ExportContext): 
   // target size so the canvas draws it 1:1 - scaling at draw time would let the browser
   // rasterise at the intrinsic size first, and blur it.
   const scale = action === "png" ? config.scale : 1;
-  const rendered = renderSvgTable(table, { ink: config.ink, scale });
+  const rendered = exportable.render({ ink: config.ink, scale });
 
-  const target = await askWhereToSave(projectUri, table, action);
+  const target = await askWhereToSave(projectUri, exportable.title, action);
   if (target === undefined) {
     return;
   }
@@ -277,25 +304,25 @@ export async function exportTable(
   const projectUri = vscode.Uri.parse(String(target));
   const section = String(rawSection) as Section;
   const config = settings();
-  const table = await readSection(
+  const exportable = await readSection(
     projectUri,
     section,
     rawSetName === undefined ? undefined : String(rawSetName),
     config
   );
 
-  if (table === null) {
+  if (exportable === null) {
     return; // Backed out of the set prompt.
   }
-  if (table === undefined) {
+  if (exportable === undefined) {
     await vscode.window.showErrorMessage(
       "That table is no longer in the run's results. Re-open the page to refresh it."
     );
     return;
   }
 
-  const choice = await vscode.window.showQuickPick(actions(config), {
-    title: `Export — ${table.title}`,
+  const choice = await vscode.window.showQuickPick(actions(config, exportable.table !== undefined), {
+    title: `Export — ${exportable.title}`,
     placeHolder: "Choose what to do with this table",
   });
   if (choice === undefined) {
@@ -303,7 +330,7 @@ export async function exportTable(
   }
 
   try {
-    await run(choice.id, table, {
+    await run(choice.id, exportable, {
       extensionUri,
       projectUri,
       section,

@@ -35,17 +35,17 @@ export interface SvgOptions {
 
 // Ink, not "colour": the export is one solid tone on nothing, and the choice is only which
 // way round it has to read on the slide.
-const INK = { dark: "#1a1a1a", light: "#f2f2f2" };
+export const INK = { dark: "#1a1a1a", light: "#f2f2f2" };
 
 // Helvetica, Arial and Liberation Sans all advance a digit by 0.556 em and are what
 // PowerPoint actually resolves; DejaVu Sans, the Linux fallback, is 0.636 - which is the
 // case the advance bound below has to cover.
-const FONT = "Helvetica Neue, Helvetica, Arial, Liberation Sans, sans-serif";
+export const FONT = "Helvetica Neue, Helvetica, Arial, Liberation Sans, sans-serif";
 
-const FS = 14; // base font size, in user units
+export const FS = 14; // base font size, in user units
 const PAD = 1.4 * FS; // cell padding inside the rules
 const GAP = 1.6 * FS; // gutter between columns - the shock absorber for a mis-guessed width
-const MARGIN = 0.5 * FS; // outside the rules, so a stroke is never clipped
+export const MARGIN = 0.5 * FS; // outside the rules, so a stroke is never clipped
 const ROW = 2.0 * FS;
 const HEAD = 2.2 * FS;
 const GROUP = 1.9 * FS;
@@ -57,7 +57,7 @@ const SMALL = 0.72; // sub/superscript size, as a fraction of the base
 const SUB_DY = 0.22; // downwards, in base font sizes
 const SUP_DY = -0.38; // upwards
 
-const MINUS = "−"; // U+2212 MINUS SIGN: a hyphen is too short to read as one
+export const MINUS = "−"; // U+2212 MINUS SIGN: a hyphen is too short to read as one
 
 /**
  * Upper bound on one character's advance, in em. There is no way to measure text in the
@@ -88,7 +88,7 @@ function measureEm(text: string): number {
 }
 
 // Text nodes need & < > escaped; attributes also need ". Everything else is valid XML.
-function escapeXml(text: string): string {
+export function escapeXml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -97,7 +97,7 @@ function escapeXml(text: string): string {
 }
 
 // Short numbers keep the file readable and small; two decimals is well under a pixel here.
-function n(value: number): string {
+export function n(value: number): string {
   return String(Math.round(value * 100) / 100);
 }
 
@@ -121,7 +121,7 @@ function tspan(text: string, dy: number): string {
  * shift is measured from wherever the previous one left the pen. Sub and superscript are
  * always last, so nothing ever has to return to the baseline.
  */
-function labelPiece(label: Label): Piece {
+export function labelPiece(label: Label): Piece {
   let markup = escapeXml(label.base);
   let em = measureEm(label.base);
   let dy = 0;

@@ -34,6 +34,8 @@ table:not(.corr) tbody td { transition: background 0.12s ease; }
 table:not(.corr) tbody tr:hover td { background: var(--mlx-hover); }
 td.empty { color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground)); }
 td.warn { color: var(--mlx-warn); }
+/* A significant test: not a fault in itself (a covariate effect, say), so bold rather than warn. */
+td.sig { font-weight: 700; }
 
 /* Positioned over the card header (a sibling of <summary>, not a child of it, so
    clicking it doesn't also fire the details' native open/close toggle). */
@@ -83,6 +85,9 @@ td.warn { color: var(--mlx-warn); }
 .iiv-cv, .iiv-raw { display: inline; }
 .card:has(.cv-toggle:checked) .iiv-raw { display: none; }
 .card:not(:has(.cv-toggle:checked)) .iiv-cv { display: none; }
+
+/* Shrinkage switch: unchecked hides the column. */
+.card:not(:has(.shrinkage-toggle:checked)) .shrinkage { display: none; }
 
 /* Simulated switch: checked shows only the entries a simulation group uses. */
 .card:has(.sim-toggle:checked) .rows-all { display: none; }

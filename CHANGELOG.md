@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.1]
+- Add Shrinkage values in the parameter table
+- Add a new section with Statistical tests values
+
 ## [1.5.4]
 - Fix table header during horizontal scrolling
 - Add a filter to display only simulated treatments and outputs for Simulx

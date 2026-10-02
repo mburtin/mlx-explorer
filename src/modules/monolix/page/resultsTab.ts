@@ -2,13 +2,21 @@ import * as vscode from "vscode";
 import { readTable, readText } from "../../../common/files";
 import { columnIndex, formatFixed, Table } from "../../../common/table";
 import { renderExportLink } from "../../../common/exportLink";
-import { escapeHtml, numCell, stripe } from "../../../common/webview";
+import { escapeHtml, infoIcon, numCell, stripe } from "../../../common/webview";
 
 // Above this threshold the parameter estimate is imprecise
 const RSE_WARNING = 20;
 
 // Above this, two estimates barely separate: the model is over-parameterised
-const CORR_WARNING = 0.9;
+export const CORR_WARNING = 0.9;
+
+// Above this, the individual estimates shrink towards the population value and
+// their diagnostics stop being informative
+const SHRINKAGE_WARNING = 30;
+
+const SHRINKAGE_HINT =
+  "Quantifies the ability of the data to precisely estimate the individual parameters (EBEs).\n" +
+  `Above ${SHRINKAGE_WARNING} %, diagnostics based on them become unreliable.`;
 
 export interface ResultsData {
   parameters: ParameterView;
@@ -23,22 +31,24 @@ export interface ParameterRow {
   iiv: string; // CV (%) conversion of the random effect
   iivRse: string;
   iivValue: string; // Raw value of the random effect (in variance)
+  shrinkage: string; // Shrinkage (%) of the conditional mode
 }
 
 export interface ParameterView {
   hasIiv: boolean;
   hasRse: boolean;
+  hasShrinkage: boolean;
   rows: ParameterRow[];
 }
 
-interface CorrelationMatrix {
+export interface CorrelationMatrix {
   names: string[];
   values: number[][];
 }
 
 
-// Builds one row per parameter, merging its estimate (X_pop) and its variability
-function buildParameterView(table: Table): ParameterView {
+// Builds one row per parameter, merging its estimate (X_pop), its variability and its shrinkage
+function buildParameterView(table: Table, shrinkage?: Table): ParameterView {
   const nameAt = Math.max(columnIndex(table.columns, "parameter"), 0);
   const valueAt = columnIndex(table.columns, "value");
   const cvAt = columnIndex(table.columns, "cv");
@@ -50,7 +60,7 @@ function buildParameterView(table: Table): ParameterView {
   const rowFor = (name: string) => {
     let row = byName.get(name);
     if (!row) {
-      row = { name, value: "", rse: "", iiv: "", iivRse: "", iivValue: "" };
+      row = { name, value: "", rse: "", iiv: "", iivRse: "", iivValue: "", shrinkage: "" };
       byName.set(name, row);
       rows.push(row);
     }
@@ -71,10 +81,25 @@ function buildParameterView(table: Table): ParameterView {
     }
   }
 
+  if (shrinkage) {
+    // The conditional mode is the usual eta-shrinkage; the mean stands in when the mode was not estimated
+    const modeAt = columnIndex(shrinkage.columns, "shrinkage_mode");
+    const valueAt = modeAt >= 0 ? modeAt : columnIndex(shrinkage.columns, "shrinkage_mean");
+    for (const raw of shrinkage.rows) {
+      const row = byName.get(at(raw, 0));
+      const value = at(raw, valueAt);
+      // Parameters without variability are written as nan
+      if (row && value !== "" && Number.isFinite(Number(value))) {
+        row.shrinkage = value;
+      }
+    }
+  }
+
   return {
     // Don't show a column that is empty for every row
     hasIiv: rows.some((row) => row.iiv !== "" || row.iivValue !== ""),
     hasRse: rows.some((row) => row.rse !== "" || row.iivRse !== ""),
+    hasShrinkage: rows.some((row) => row.shrinkage !== ""),
     rows,
   };
 }
@@ -136,16 +161,17 @@ export async function readResults(results: vscode.Uri): Promise<ResultsData | un
     return undefined;
   }
 
+  const shrinkage = await readTable(vscode.Uri.joinPath(results, "IndividualParameters", "shrinkage.txt"));
   return {
-    parameters: buildParameterView(parameters),
+    parameters: buildParameterView(parameters, shrinkage),
     criteria: await readTable(vscode.Uri.joinPath(results, "LogLikelihood", "logLikelihood.txt")),
     correlation: await readCorrelation(results, parameters),
   };
 }
 
-// Returns a CSS class flagging an RSE above the warning threshold
-function warnClass(rse: string): string {
-  return rse !== "" && Number(rse) > RSE_WARNING ? " warn" : "";
+// Returns a CSS class flagging a value above its warning threshold
+function warnClass(value: string, threshold = RSE_WARNING): string {
+  return value !== "" && Number(value) > threshold ? " warn" : "";
 }
 
 // Renders the likelihood / model selection criteria card
@@ -197,7 +223,10 @@ function renderParameters(view: ParameterView, projectUri: string): string {
     "<th>Parameter</th><th class=\"num\">Value</th>" +
     (view.hasRse ? '<th class="num">RSE (%)</th>' : "") +
     (view.hasIiv ? iivHead : "") +
-    (view.hasIiv && view.hasRse ? '<th class="num">RSE (%)</th>' : "");
+    (view.hasIiv && view.hasRse ? '<th class="num">RSE (%)</th>' : "") +
+    (view.hasShrinkage
+      ? `<th class="num shrinkage">Shrinkage (%) ${infoIcon(SHRINKAGE_HINT)}</th>`
+      : "");
 
   const body = view.rows
     .map((row, index) =>
@@ -205,6 +234,9 @@ function renderParameters(view: ParameterView, projectUri: string): string {
       (view.hasRse ? numCell(row.rse, warnClass(row.rse)) : "") +
       (view.hasIiv ? iivCell(row.iiv, row.iivValue) : "") +
       (view.hasIiv && view.hasRse ? numCell(row.iivRse, warnClass(row.iivRse)) : "") +
+      (view.hasShrinkage
+        ? numCell(row.shrinkage, ` shrinkage${warnClass(row.shrinkage, SHRINKAGE_WARNING)}`)
+        : "") +
       "</tr>"
     )
     .join("");
@@ -222,19 +254,25 @@ function renderParameters(view: ParameterView, projectUri: string): string {
         <span class="cv-switch-label">CV (%)</span>
       </label>`
     : "";
+  const shrinkageToggle = view.hasShrinkage
+    ? `<label class="cv-switch" title="Show or hide the shrinkage column">
+        <input type="checkbox" class="shrinkage-toggle" checked>
+        <span class="cv-switch-slider"></span>
+        <span class="cv-switch-label">Shrinkage</span>
+      </label>`
+    : "";
 
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Model parameters</h2>${note}</summary>
-      ${renderExportLink(projectUri, "parameters")}
-      ${toggle}
+      <div class="card-tools">${toggle}${shrinkageToggle}${renderExportLink(projectUri, "parameters")}</div>
       <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
     </details>
   </section>`;
 }
 
 // Computes a cell's background opacity from |r|
-function corrAlpha(value: number): string {
+export function corrAlpha(value: number): string {
   return (Math.abs(value) ** 0.75 * 0.95).toFixed(3);
 }
 
@@ -275,10 +313,11 @@ function renderMatrix(matrix: CorrelationMatrix): string {
 }
 
 // Renders the correlation matrix card
-function renderCorrelation(matrix: CorrelationMatrix): string {
+function renderCorrelation(matrix: CorrelationMatrix, projectUri: string): string {
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">&#9654;</span><h2>Correlation matrix</h2></summary>
+      ${renderExportLink(projectUri, "correlation")}
       <div class="corr-scroll">${renderMatrix(matrix)}</div>
     </details>
   </section>`;
@@ -299,5 +338,5 @@ export function renderResults(
 
   return `${data.criteria ? renderCriteria(data.criteria, projectUri) : ""}` +
     `${renderParameters(data.parameters, projectUri)}` +
-    `${data.correlation ? renderCorrelation(data.correlation) : ""}`;
+    `${data.correlation ? renderCorrelation(data.correlation, projectUri) : ""}`;
 }

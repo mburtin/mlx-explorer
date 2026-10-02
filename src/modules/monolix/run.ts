@@ -5,6 +5,7 @@ import { runFolder } from "../index";
 import { readSettings, Settings } from "../../projectSettings";
 import { ModelFile, readModel } from "./page/modelTab";
 import { ResultsData, readResults } from "./page/resultsTab";
+import { readTests, TestGroup } from "./page/testsTab";
 import { parseDataFile, TOOL } from "./project";
 
 export interface Run {
@@ -12,6 +13,7 @@ export interface Run {
   resultsPath: string;
   projectUri: string;
   results?: ResultsData;
+  tests?: TestGroup[];
   model?: ModelFile;
   settings: Settings;
   dataUri?: string;
@@ -41,6 +43,7 @@ export async function readRun(projectUri: vscode.Uri): Promise<Run> {
     resultsPath: vscode.workspace.asRelativePath(results),
     projectUri: projectUri.toString(),
     results: await readResults(results),
+    tests: await readTests(results),
     model: await readModel(projectUri, project),
     settings: await readSettings(projectUri, project, TOOL),
     dataUri: await resolveDataFile(projectUri, project),

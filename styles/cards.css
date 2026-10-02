@@ -27,6 +27,7 @@ details { position: relative; }
 .card:has(.btn-export) .card-head { padding-right: 3rem; }
 .card:has(.cv-switch) .card-head { padding-right: 9.5rem; }
 .card:has(.cv-switch):has(.btn-export) .card-head { padding-right: 11.5rem; }
+.card:has(.cv-switch ~ .cv-switch) .card-head { padding-right: 17rem; }
 summary.card-head { cursor: pointer; list-style: none; }
 summary.card-head::-webkit-details-marker { display: none; }
 .chevron {
@@ -45,6 +46,55 @@ h2 {
   color: var(--vscode-foreground);
 }
 .note { font-size: 0.88em; color: var(--vscode-descriptionForeground); }
+/* Info icon: hovering it shows a bubble explaining the title or column it follows. Sized
+   in em to match that text; a button inherits neither the font nor the cursor on its own. */
+.info {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  vertical-align: middle;
+  color: var(--vscode-descriptionForeground);
+  cursor: inherit;
+  anchor-name: --info;
+  anchor-scope: --info;
+}
+.info svg { display: block; width: 1.15em; height: 1.15em; }
+.info:hover { color: var(--mlx-accent); }
+/* Fixed, so the card - a horizontal scroller - cannot clip it, and anchored under its own
+   icon (anchor-scope keeps each bubble on its icon), which it follows when the page
+   scrolls. It flips above the icon near the bottom of the window. It resets what it would
+   inherit from a header (uppercase, bold, right-aligned, monospace). */
+.info-bubble {
+  display: none;
+  position: fixed;
+  position-anchor: --info;
+  top: anchor(bottom);
+  left: anchor(left);
+  position-try-fallbacks: flip-block, flip-inline;
+  z-index: 10;
+  width: max-content;
+  max-width: 440px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-editorHoverWidget-border, var(--mlx-border));
+  border-radius: 4px;
+  background: var(--vscode-editorHoverWidget-background, var(--vscode-editor-background));
+  color: var(--vscode-editorHoverWidget-foreground, var(--vscode-foreground));
+  box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: 1.45;
+  text-align: left;
+  text-transform: none;
+  white-space: pre-line;
+}
+.info:hover .info-bubble, .info:focus-visible .info-bubble { display: block; }
+/* A right-aligned header ends at the card's edge: there the bubble grows leftwards. */
+.num .info-bubble { left: auto; right: anchor(right); }
 
 .stats { display: flex; flex-wrap: wrap; }
 .stat { flex: 1; min-width: 6rem; padding: 13px 16px; }
@@ -137,5 +187,14 @@ body.vscode-dark .tk-string, body.vscode-high-contrast .tk-string {
 }
 .btn-export:hover, .btn-edit:hover { color: var(--mlx-accent); background: var(--mlx-hover); }
 details > .btn-export { position: absolute; top: 7px; right: 12px; z-index: 1; }
-/* The parameters card carries both controls; the icon steps aside for the switch. */
-details:has(.cv-switch) > .btn-export { right: 132px; }
+/* The parameters card carries several controls: one row on the header, export last. */
+.card-tools {
+  position: absolute;
+  top: 7px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-tools > .cv-switch { position: static; }

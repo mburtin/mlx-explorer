@@ -88,6 +88,7 @@ td.sig { font-weight: 700; }
 
 /* Shrinkage switch: unchecked hides the column. */
 .card:not(:has(.shrinkage-toggle:checked)) .shrinkage { display: none; }
+.card:has(.shrinkage-toggle:checked) .no-shrinkage { display: none; }
 
 /* Simulated switch: checked shows only the entries a simulation group uses. */
 .card:has(.sim-toggle:checked) .rows-all { display: none; }

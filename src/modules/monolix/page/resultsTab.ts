@@ -262,10 +262,16 @@ function renderParameters(view: ParameterView, projectUri: string): string {
       </label>`
     : "";
 
+  // One link per state of the shrinkage switch, so the export leaves out what the page hides
+  const exportLinks = view.hasShrinkage
+    ? renderExportLink(projectUri, "parameters", undefined, { shrinkage: true }) +
+      renderExportLink(projectUri, "parameters", undefined, { shrinkage: false })
+    : renderExportLink(projectUri, "parameters");
+
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Model parameters</h2>${note}</summary>
-      <div class="card-tools">${toggle}${shrinkageToggle}${renderExportLink(projectUri, "parameters")}</div>
+      <div class="card-tools">${toggle}${shrinkageToggle}${exportLinks}</div>
       <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
     </details>
   </section>`;

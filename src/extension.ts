@@ -8,6 +8,7 @@ import {
   openRunPage,
   openSummaryPage,
 } from "./commands";
+import { ExportOptions } from "./common/exportLink";
 import { exportTable } from "./exportTable";
 import { applyProjectFix } from "./projectSettings";
 import { ProjectsProvider } from "./projectsTree";
@@ -102,8 +103,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("mlx-explorer.editRunIndex", editRunIndex),
     vscode.commands.registerCommand(
       "mlx-explorer.exportTable",
-      (projectUri: string, section: string, setName?: string) =>
-        exportTable(context.extensionUri, projectUri, section, setName)
+      (projectUri: string, section: string, setName?: string | null, options?: ExportOptions) =>
+        exportTable(context.extensionUri, projectUri, section, setName ?? undefined, options)
     ),
     vscode.commands.registerCommand(
       "mlx-explorer.moveSelection",

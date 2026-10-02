@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.6.2]
+- Fix shrinkage always display during the export even if it was disable
+
 ## [1.6.1]
 - Add Shrinkage values in the parameter table
 - Add a new section with Statistical tests values

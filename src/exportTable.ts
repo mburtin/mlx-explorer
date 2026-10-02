@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { Section } from "./common/exportLink";
+import { ExportOptions, Section } from "./common/exportLink";
 import { readText, writeText } from "./common/files";
 import { rasterize } from "./common/rasterize";
 import { renderSvgMatrix } from "./common/svgMatrix";
@@ -32,7 +32,13 @@ function numeric(digits: number): ExportColumn["format"] {
   return { kind: "significant", digits };
 }
 
-function parametersTable(view: ParameterView, config: ExportSettings): ExportTable {
+function parametersTable(
+  view: ParameterView,
+  config: ExportSettings,
+  options: ExportOptions | undefined
+): ExportTable {
+  // Left out when the page's switch hides it: the link clicked says which way it is set
+  const shrinkage = view.hasShrinkage && options?.shrinkage !== false;
   const columns: ExportColumn[] = [
     { header: "Parameter", format: { kind: "symbol" } },
     { header: "Estimate", format: numeric(config.digits) },
@@ -51,7 +57,7 @@ function parametersTable(view: ParameterView, config: ExportSettings): ExportTab
     if (view.hasRse) {
       columns.push({ header: "RSE (%)", format: numeric(config.digits), group: "IIV" });
     }
-    if (view.hasShrinkage) {
+    if (shrinkage) {
       columns.push({ header: "Shrinkage (%)", format: numeric(config.digits), group: "IIV" });
     }
   }
@@ -66,7 +72,7 @@ function parametersTable(view: ParameterView, config: ExportSettings): ExportTab
       if (view.hasRse) {
         cells.push(row.iivRse);
       }
-      if (view.hasShrinkage) {
+      if (shrinkage) {
         cells.push(row.shrinkage);
       }
     }
@@ -160,7 +166,8 @@ async function readSection(
   projectUri: vscode.Uri,
   section: Section,
   setName: string | undefined,
-  config: ExportSettings
+  config: ExportSettings,
+  options: ExportOptions | undefined
 ): Promise<Exportable | undefined | null> {
   const tool = toolFor(projectUri);
   const content = tool === undefined ? undefined : await readText(projectUri);
@@ -189,7 +196,7 @@ async function readSection(
       ? undefined
       : { title: "Correlation matrix", render: (options) => renderSvgMatrix(matrix, options) };
   }
-  return fromTable(parametersTable(results.parameters, config));
+  return fromTable(parametersTable(results.parameters, config, options));
 }
 
 /** `warfarin_project` + "Model parameters" -> `warfarin_project-model-parameters`. */
@@ -299,7 +306,8 @@ export async function exportTable(
   extensionUri: vscode.Uri,
   target: unknown,
   rawSection: unknown,
-  rawSetName?: unknown
+  rawSetName?: unknown,
+  options?: ExportOptions
 ): Promise<void> {
   const projectUri = vscode.Uri.parse(String(target));
   const section = String(rawSection) as Section;
@@ -308,7 +316,8 @@ export async function exportTable(
     projectUri,
     section,
     rawSetName === undefined ? undefined : String(rawSetName),
-    config
+    config,
+    options
   );
 
   if (exportable === null) {

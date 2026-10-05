@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.6.3]
+- Fix the Settings fix: also update the project copy in .Internals so estimations no longer need to be rerun
+
 ## [1.6.2]
 - Fix shrinkage always display during the export even if it was disable
 

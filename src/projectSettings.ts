@@ -203,6 +203,36 @@ async function gather(
 }
 
 /**
+ * MonolixSuite keeps a copy of the project in `<run>/.Internals/`, its paths relative to
+ * that folder. Left stale, the app sees a changed project and forces the estimations to
+ * be run again, so the copy is repointed the same way as the project.
+ */
+async function syncInternals(
+  projectUri: vscode.Uri,
+  runUri: vscode.Uri,
+  tool: Tool,
+  misplaced: Checked[]
+): Promise<void> {
+  const copyUri = vscode.Uri.joinPath(runUri, ".Internals", path.basename(projectUri.fsPath));
+  const copy = await readText(copyUri);
+  if (copy === undefined) {
+    return;
+  }
+
+  let updated = copy;
+  for (const { source, target } of misplaced) {
+    const stale = tool
+      .userFiles(copy)
+      .find((file) => resolveProjectPath(copyUri, file.declared).fsPath === source.fsPath);
+    if (stale !== undefined) {
+      updated = replaceFileValue(updated, stale.declared, declaredPath(copyUri, target));
+    }
+  }
+
+  await writeText(copyUri, setGlobalSetting(updated, FLAG, "true"));
+}
+
+/**
  * Gathers the files the tab listed as outside the run, then reopens the page on the
  * Settings tab so it re-reads from disk and stays where the user was.
  */
@@ -227,6 +257,7 @@ export async function applyProjectFix(target: unknown): Promise<void> {
 
   try {
     await writeText(projectUri, await gather(projectUri, content, misplaced));
+    await syncInternals(projectUri, runFolder(projectUri, content, tool).uri, tool, misplaced);
   } catch (error) {
     await vscode.window.showErrorMessage(`Could not gather the files: ${error}`);
     return;

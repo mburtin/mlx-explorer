@@ -2,7 +2,7 @@
   "name": "mlx-explorer",
   "displayName": "MLX Explorer",
   "description": "Visualize MonolixSuite projects in Positron.",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",
@@ -300,6 +300,21 @@
           ],
           "default": 2,
           "markdownDescription": "Pixel scale of an exported PNG. SVG is vector and ignores this."
+        },
+        "mlx-explorer.export.format": {
+          "type": "string",
+          "enum": [
+            "both",
+            "png",
+            "svg"
+          ],
+          "default": "both",
+          "enumDescriptions": [
+            "Offer both PNG and SVG.",
+            "Only offer PNG.",
+            "Only offer SVG."
+          ],
+          "markdownDescription": "Image format offered when exporting a table. R code is always offered for a table."
         },
         "mlx-explorer.export.iiv": {
           "type": "string",

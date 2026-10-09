@@ -1,4 +1,7 @@
+import { execFile } from "child_process";
+import * as os from "os";
 import * as path from "path";
+import { promisify } from "util";
 import * as vscode from "vscode";
 import { ExportOptions, Section } from "./common/exportLink";
 import { readText, writeText } from "./common/files";
@@ -16,6 +19,7 @@ interface ExportSettings {
   digits: number;
   scale: number;
   iiv: "cv" | "omega";
+  format: "both" | "png" | "svg";
 }
 
 function settings(): ExportSettings {
@@ -25,6 +29,7 @@ function settings(): ExportSettings {
     digits: config.get<number>("significantDigits", 3),
     scale: config.get<number>("pngScale", 2),
     iiv: config.get<"cv" | "omega">("iiv", "cv"),
+    format: config.get<"both" | "png" | "svg">("format", "both"),
   };
 }
 
@@ -39,6 +44,7 @@ function parametersTable(
 ): ExportTable {
   // Left out when the page's switch hides it: the link clicked says which way it is set
   const shrinkage = view.hasShrinkage && options?.shrinkage !== false;
+  const viewRows = options?.fixedEffects ? view.fixedEffectRows : view.rows;
   const columns: ExportColumn[] = [
     { header: "Parameter", format: { kind: "symbol" } },
     { header: "Estimate", format: numeric(config.digits) },
@@ -62,7 +68,7 @@ function parametersTable(
     }
   }
 
-  const rows = view.rows.map((row) => {
+  const rows = viewRows.map((row) => {
     const cells = [row.name, row.value];
     if (view.hasRse) {
       cells.push(row.rse);
@@ -233,7 +239,8 @@ async function announce(target: vscode.Uri): Promise<void> {
   }
 }
 
-type Action = "png" | "svg" | "r";
+type Action = "png" | "svg" | "copyPng" | "copySvg" | "r";
+type ActionItem = vscode.QuickPickItem & { id?: Action };
 
 /** Everything an action needs that is not the table itself. */
 interface ExportContext {
@@ -246,21 +253,74 @@ interface ExportContext {
   config: ExportSettings;
 }
 
-function actions(config: ExportSettings, withR: boolean): (vscode.QuickPickItem & { id: Action })[] {
-  const all: (vscode.QuickPickItem & { id: Action })[] = [
-    {
-      id: "png",
-      label: "$(file-media) Save as PNG…",
-      detail: `PNG with transparent background, ${config.scale}×`,
-    },
-    { id: "svg", label: "$(symbol-color) Save as SVG…", detail: "Vector, with transparent background" },
-    {
-      id: "r",
-      label: "$(file-code) Copy R code",
-      detail: "A self-contained data.frame, at full precision",
-    },
+function actions(config: ExportSettings, withR: boolean): ActionItem[] {
+  const separator = (label: string): ActionItem => ({ label, kind: vscode.QuickPickItemKind.Separator });
+  const png = config.format !== "svg";
+  const svg = config.format !== "png";
+  return [
+    separator("Save"),
+    ...(png
+      ? [{ id: "png" as const, label: "$(file-media) Save as PNG…", detail: `PNG with transparent background, ${config.scale}×` }]
+      : []),
+    ...(svg
+      ? [{ id: "svg" as const, label: "$(symbol-color) Save as SVG…", detail: "Vector, with transparent background" }]
+      : []),
+    separator("Copy"),
+    ...(png
+      ? [{ id: "copyPng" as const, label: "$(file-media) Copy as PNG", detail: "Image on the clipboard, with transparent background" }]
+      : []),
+    ...(svg
+      ? [{ id: "copySvg" as const, label: "$(symbol-color) Copy as SVG", detail: "The SVG file on the clipboard, to paste into a slide or a folder" }]
+      : []),
+    ...(withR
+      ? [{ id: "r" as const, label: "$(file-code) Copy R code", detail: "A self-contained data.frame, at full precision" }]
+      : []),
   ];
-  return withR ? all : all.filter((action) => action.id !== "r");
+}
+
+const exec = promisify(execFile);
+
+// VS Code's clipboard API only carries text, so an image goes through the OS
+async function copyImage(png: Uint8Array): Promise<void> {
+  const file = path.join(os.tmpdir(), `mlx-explorer-${process.pid}.png`);
+  await vscode.workspace.fs.writeFile(vscode.Uri.file(file), png);
+  try {
+    if (process.platform === "darwin") {
+      await exec("osascript", ["-e", `set the clipboard to (read (POSIX file "${file}") as «class PNGf»)`]);
+    } else if (process.platform === "win32") {
+      await exec("powershell", [
+        "-STA",
+        "-NoProfile",
+        "-Command",
+        `Add-Type -AssemblyName System.Windows.Forms,System.Drawing; ` +
+          `[Windows.Forms.Clipboard]::SetImage([Drawing.Image]::FromFile('${file}'))`,
+      ]);
+    } else {
+      await exec("sh", [
+        "-c",
+        `if [ -n "$WAYLAND_DISPLAY" ]; then wl-copy --type image/png < "${file}"; ` +
+          `else xclip -selection clipboard -t image/png -i "${file}"; fi`,
+      ]);
+    }
+  } finally {
+    await vscode.workspace.fs.delete(vscode.Uri.file(file));
+  }
+}
+
+// Puts the file itself on the clipboard, as a copy in the file manager does. The file has to
+// outlive the call: the clipboard only holds a reference to it.
+async function copyFile(file: string): Promise<void> {
+  if (process.platform === "darwin") {
+    await exec("osascript", ["-e", `set the clipboard to (POSIX file "${file}")`]);
+  } else if (process.platform === "win32") {
+    await exec("powershell", ["-NoProfile", "-Command", `Set-Clipboard -Path '${file}'`]);
+  } else {
+    await exec("sh", [
+      "-c",
+      `if [ -n "$WAYLAND_DISPLAY" ]; then printf 'file://%s\\n' "${file}" | wl-copy --type text/uri-list; ` +
+        `else printf 'file://%s\\n' "${file}" | xclip -selection clipboard -t text/uri-list -i; fi`,
+    ]);
+  }
 }
 
 async function run(action: Action, exportable: Exportable, context: ExportContext): Promise<void> {
@@ -279,8 +339,28 @@ async function run(action: Action, exportable: Exportable, context: ExportContex
   // Vector output needs no scale factor; only the raster does. The SVG is emitted at the
   // target size so the canvas draws it 1:1 - scaling at draw time would let the browser
   // rasterise at the intrinsic size first, and blur it.
-  const scale = action === "png" ? config.scale : 1;
-  const rendered = exportable.render({ ink: config.ink, scale });
+  const raster = action === "png" || action === "copyPng";
+  const rendered = exportable.render({ ink: config.ink, scale: raster ? config.scale : 1 });
+  const toPng = () =>
+    vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: "Exporting table…" },
+      () => rasterize(context.extensionUri, rendered, context.behind)
+    );
+
+  if (action === "copySvg") {
+    const folder = vscode.Uri.file(path.join(os.tmpdir(), "mlx-explorer"));
+    await vscode.workspace.fs.createDirectory(folder);
+    const file = vscode.Uri.joinPath(folder, `${fileStem(projectUri, exportable.title)}.svg`);
+    await writeText(file, rendered.svg);
+    await copyFile(file.fsPath);
+    await vscode.window.showInformationMessage("SVG file copied.");
+    return;
+  }
+  if (action === "copyPng") {
+    await copyImage(await toPng());
+    await vscode.window.showInformationMessage("PNG copied.");
+    return;
+  }
 
   const target = await askWhereToSave(projectUri, exportable.title, action);
   if (target === undefined) {
@@ -290,13 +370,7 @@ async function run(action: Action, exportable: Exportable, context: ExportContex
   if (action === "svg") {
     await writeText(target, rendered.svg);
   } else {
-    await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: "Exporting table…" },
-      async () => {
-        const png = await rasterize(context.extensionUri, rendered, context.behind);
-        await vscode.workspace.fs.writeFile(target, png);
-      }
-    );
+    await vscode.workspace.fs.writeFile(target, await toPng());
   }
   await announce(target);
 }
@@ -334,7 +408,7 @@ export async function exportTable(
     title: `Export — ${exportable.title}`,
     placeHolder: "Choose what to do with this table",
   });
-  if (choice === undefined) {
+  if (choice?.id === undefined) {
     return;
   }
 

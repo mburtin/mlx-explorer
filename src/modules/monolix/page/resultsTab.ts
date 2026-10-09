@@ -39,6 +39,7 @@ export interface ParameterView {
   hasRse: boolean;
   hasShrinkage: boolean;
   rows: ParameterRow[];
+  fixedEffectRows: ParameterRow[];
 }
 
 export interface CorrelationMatrix {
@@ -48,7 +49,7 @@ export interface CorrelationMatrix {
 
 
 // Builds one row per parameter, merging its estimate (X_pop), its variability and its shrinkage
-function buildParameterView(table: Table, shrinkage?: Table): ParameterView {
+function buildParameterView(table: Table, shrinkage?: Table, groups?: Table): ParameterView {
   const nameAt = Math.max(columnIndex(table.columns, "parameter"), 0);
   const valueAt = columnIndex(table.columns, "value");
   const cvAt = columnIndex(table.columns, "cv");
@@ -96,12 +97,45 @@ function buildParameterView(table: Table, shrinkage?: Table): ParameterView {
   }
 
   return {
+    fixedEffectRows: groups ? fixedEffectRows(rows, groups) : [],
     // Don't show a column that is empty for every row
     hasIiv: rows.some((row) => row.iiv !== "" || row.iivValue !== ""),
     hasRse: rows.some((row) => row.rse !== "" || row.iivRse !== ""),
     hasShrinkage: rows.some((row) => row.shrinkage !== ""),
     rows,
   };
+}
+
+// Replaces each parameter that has betas by one row per category (populationParametersByGroups.txt),
+// which inherit the parameter's variability and shrinkage
+function fixedEffectRows(rows: ParameterRow[], groups: Table): ParameterRow[] {
+  const nameAt = Math.max(columnIndex(groups.columns, "parameter"), 0);
+  const valueAt = columnIndex(groups.columns, "value");
+  const rseAt = columnIndex(groups.columns, "rse");
+  const cell = (row: string[], index: number) => (index < 0 ? "" : (row[index] ?? "").trim());
+
+  const hasBetas = (row: ParameterRow) =>
+    rows.some((other) => other.name.startsWith(`beta_${row.name}_`));
+  const isBeta = (row: ParameterRow) =>
+    rows.some((other) => hasBetas(other) && row.name.startsWith(`beta_${other.name}_`));
+
+  const result: ParameterRow[] = [];
+  for (const row of rows) {
+    if (isBeta(row)) {
+      continue;
+    }
+    const categories = hasBetas(row)
+      ? groups.rows.filter((raw) => cell(raw, nameAt).startsWith(`${row.name}_`))
+      : [];
+    if (categories.length === 0) {
+      result.push(row);
+      continue;
+    }
+    for (const raw of categories) {
+      result.push({ ...row, name: cell(raw, nameAt), value: cell(raw, valueAt), rse: cell(raw, rseAt) });
+    }
+  }
+  return result;
 }
 
 // Parses a correlationEstimates{Lin,SA}.txt CSV into a matrix, keeping the lower triangle
@@ -162,8 +196,9 @@ export async function readResults(results: vscode.Uri): Promise<ResultsData | un
   }
 
   const shrinkage = await readTable(vscode.Uri.joinPath(results, "IndividualParameters", "shrinkage.txt"));
+  const groups = await readTable(vscode.Uri.joinPath(results, "populationParametersByGroups.txt"));
   return {
-    parameters: buildParameterView(parameters, shrinkage),
+    parameters: buildParameterView(parameters, shrinkage, groups),
     criteria: await readTable(vscode.Uri.joinPath(results, "LogLikelihood", "logLikelihood.txt")),
     correlation: await readCorrelation(results, parameters),
   };
@@ -228,7 +263,7 @@ function renderParameters(view: ParameterView, projectUri: string): string {
       ? `<th class="num shrinkage">Shrinkage (%) ${infoIcon(SHRINKAGE_HINT)}</th>`
       : "");
 
-  const body = view.rows
+  const renderRows = (rows: ParameterRow[]) => rows
     .map((row, index) =>
       `<tr${stripe(index)}><td>${escapeHtml(row.name)}</td>${numCell(row.value)}` +
       (view.hasRse ? numCell(row.rse, warnClass(row.rse)) : "") +
@@ -240,6 +275,12 @@ function renderParameters(view: ParameterView, projectUri: string): string {
       "</tr>"
     )
     .join("");
+
+  const hasFixedEffects = view.fixedEffectRows.length > 0;
+  const body = hasFixedEffects
+    ? `<tbody class="rows-beta">${renderRows(view.rows)}</tbody>` +
+      `<tbody class="rows-fixed-effects">${renderRows(view.fixedEffectRows)}</tbody>`
+    : `<tbody>${renderRows(view.rows)}</tbody>`;
 
   // Without a FIM, Monolix produces neither standard errors nor likelihood
   const note = view.hasRse ? "" : '<span class="note">FIM not estimated for this run</span>';
@@ -262,17 +303,31 @@ function renderParameters(view: ParameterView, projectUri: string): string {
       </label>`
     : "";
 
-  // One link per state of the shrinkage switch, so the export leaves out what the page hides
-  const exportLinks = view.hasShrinkage
-    ? renderExportLink(projectUri, "parameters", undefined, { shrinkage: true }) +
-      renderExportLink(projectUri, "parameters", undefined, { shrinkage: false })
-    : renderExportLink(projectUri, "parameters");
+  const fixedEffectsToggle = hasFixedEffects
+    ? `<label class="cv-switch" title="Show the fixed effect of each covariate category instead of the betas">
+        <input type="checkbox" class="fixed-effects-toggle">
+        <span class="cv-switch-slider"></span>
+        <span class="cv-switch-label">Fixed effects</span>
+      </label>`
+    : "";
+
+  // One link per state of the switches, so the export leaves out what the page hides
+  const exportLinks = (view.hasShrinkage ? [true, false] : [undefined])
+    .flatMap((shrinkage) =>
+      (hasFixedEffects ? [false, true] : [undefined]).map((fixedEffects) => ({ shrinkage, fixedEffects }))
+    )
+    .map((options) =>
+      options.shrinkage === undefined && options.fixedEffects === undefined
+        ? renderExportLink(projectUri, "parameters")
+        : renderExportLink(projectUri, "parameters", undefined, options)
+    )
+    .join("");
 
   return `<section class="card">
     <details open>
       <summary class="card-head"><span class="chevron">▶</span><h2>Model parameters</h2>${note}</summary>
-      <div class="card-tools">${toggle}${shrinkageToggle}${exportLinks}</div>
-      <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+      <div class="card-tools">${fixedEffectsToggle}${toggle}${shrinkageToggle}${exportLinks}</div>
+      <table><thead><tr>${head}</tr></thead>${body}</table>
     </details>
   </section>`;
 }

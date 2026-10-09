@@ -90,6 +90,12 @@ td.sig { font-weight: 700; }
 .card:not(:has(.shrinkage-toggle:checked)) .shrinkage { display: none; }
 .card:has(.shrinkage-toggle:checked) .no-shrinkage { display: none; }
 
+/* Fixed effects switch: checked shows the per-category fixed effects instead of the betas. */
+.card:has(.fixed-effects-toggle:checked) .rows-beta { display: none; }
+.card:not(:has(.fixed-effects-toggle:checked)) .rows-fixed-effects { display: none; }
+.card:has(.fixed-effects-toggle:checked) .no-fixed-effects { display: none; }
+.card:not(:has(.fixed-effects-toggle:checked)) .fixed-effects { display: none; }
+
 /* Simulated switch: checked shows only the entries a simulation group uses. */
 .card:has(.sim-toggle:checked) .rows-all { display: none; }
 .card:not(:has(.sim-toggle:checked)) .rows-simulated { display: none; }

@@ -3,7 +3,9 @@
 :root {
   --mlx-accent: #1088ab;
   --mlx-deep: #1c6384;
-  --mlx-warn: #a86414;
+  --mlx-warn: #a68a00;
+  --mlx-warn-orange: #c2570c;
+  --mlx-warn-red: #c42b2b;
   --mlx-tint: rgba(16, 136, 171, 0.05);
   --mlx-band: rgba(16, 136, 171, 0.09);
   --mlx-zebra: rgba(16, 136, 171, 0.04);
@@ -15,7 +17,9 @@
 }
 body.vscode-dark, body.vscode-high-contrast {
   --mlx-accent: #00add3;
-  --mlx-warn: #e8a33d;
+  --mlx-warn: #e8c53d;
+  --mlx-warn-orange: #ee8a3a;
+  --mlx-warn-red: #f26b6b;
   --mlx-tint: rgba(0, 173, 211, 0.05);
   --mlx-band: rgba(0, 173, 211, 0.08);
   --mlx-zebra: rgba(0, 173, 211, 0.05);

@@ -34,6 +34,8 @@ table:not(.corr) tbody td { transition: background 0.12s ease; }
 table:not(.corr) tbody tr:hover td { background: var(--mlx-hover); }
 td.empty { color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground)); }
 td.warn { color: var(--mlx-warn); }
+td.warn-orange { color: var(--mlx-warn-orange); }
+td.warn-red { color: var(--mlx-warn-red); }
 /* A significant test: not a fault in itself (a covariate effect, say), so bold rather than warn. */
 td.sig { font-weight: 700; }
 

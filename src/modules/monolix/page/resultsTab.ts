@@ -5,7 +5,11 @@ import { renderExportLink } from "../../../common/exportLink";
 import { escapeHtml, infoIcon, numCell, stripe } from "../../../common/webview";
 
 // Above this threshold the parameter estimate is imprecise
-const RSE_WARNING = 20;
+const RSE_WARNING = 40;
+
+// Above these, a flagged value turns orange then red, for RSE and shrinkage alike
+const ORANGE_LEVEL = 60;
+const RED_LEVEL = 80;
 
 // Above this, two estimates barely separate: the model is over-parameterised
 export const CORR_WARNING = 0.9;
@@ -204,9 +208,19 @@ export async function readResults(results: vscode.Uri): Promise<ResultsData | un
   };
 }
 
-// Returns a CSS class flagging a value above its warning threshold
+// Returns a CSS class flagging a value above its warning threshold (yellow, orange, then red)
 function warnClass(value: string, threshold = RSE_WARNING): string {
-  return value !== "" && Number(value) > threshold ? " warn" : "";
+  if (value === "") {
+    return "";
+  }
+  const n = Number(value);
+  if (n > RED_LEVEL) {
+    return " warn-red";
+  }
+  if (n > ORANGE_LEVEL) {
+    return " warn-orange";
+  }
+  return n > threshold ? " warn" : "";
 }
 
 // Renders the likelihood / model selection criteria card

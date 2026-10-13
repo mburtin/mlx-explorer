@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.7.0]
+- Update the RSE and shrinkage color code: yellow, then orange above 60 %, red above 80 % (RSE yellow now starts at 40 %)
+
 ## [1.6.4]
 - Add the possibility to display Fixed effect values with covariates
 - Add the possibility to copy an image in cilpboard directly

@@ -1,7 +1,8 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { scanProjects } from "./common/files";
+import { readText, scanProjects } from "./common/files";
 import { Tool } from "./modules";
+import { alertText, readSettings } from "./projectSettings";
 import {
   ARCHIVE_GROUP,
   isArchived,
@@ -147,6 +148,16 @@ export class ProjectsProvider
     item.contextValue = `${this.tool.id}Project`;
     // Without an explicit id, VS Code derives one from the label
     item.id = element.uri.toString();
+
+    // Flags the runs whose files sit outside the run: the fix is offered on the run page.
+    const alert = alertText(await readSettings(element.uri, await readText(element.uri), this.tool));
+    if (alert !== undefined) {
+      item.iconPath = new vscode.ThemeIcon(
+        "warning",
+        new vscode.ThemeColor("problemsWarningIcon.foreground")
+      );
+      item.tooltip = `${element.uri.fsPath}\n${alert}`;
+    }
     return item;
   }
 

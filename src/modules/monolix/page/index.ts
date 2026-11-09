@@ -4,10 +4,10 @@ import { TOOL } from "../project";
 import { renderModel } from "./modelTab";
 import { renderResults } from "./resultsTab";
 import { renderTests } from "./testsTab";
-import { renderSettings } from "../../../projectSettings";
+import { renderAlert } from "../../../projectSettings";
 
-/** 
- * Define stylesheets needed by the page. A module declares its own list: 
+/**
+ * Define stylesheets needed by the page. A module declares its own list:
  * theme, layout, cards and tables are the shared look, matrix is the only one specific
  */
 export const STYLESHEETS = [
@@ -15,7 +15,6 @@ export const STYLESHEETS = [
   "layout.css",
   "cards.css",
   "tables.css",
-  "settings.css",
   "matrix.css",
 ];
 
@@ -29,8 +28,7 @@ function renderTabState(run: Run, active: string): string {
   const radio = (id: string) =>
     `<input type="radio" name="tab" id="tab-${id}" class="tab-state"` +
     `${active === id ? " checked" : ""}>`;
-  return radio("results") + (run.tests ? radio("tests") : "") + (run.model ? radio("model") : "") +
-    radio("settings");
+  return radio("results") + (run.tests ? radio("tests") : "") + (run.model ? radio("model") : "");
 }
 
 // Data section is a link, not a panel. We used Positron data explorer
@@ -49,7 +47,6 @@ function renderNav(run: Run): string {
   if (run.model) {
     tabs.push('<label class="tab" for="tab-model">Model</label>');
   }
-  tabs.push('<label class="tab" for="tab-settings">Settings</label>');
   return `<nav>${tabs.join("")}</nav>`;
 }
 
@@ -57,15 +54,14 @@ export function renderRunPage(run: Run, assets: WebviewAssets, active = "results
   const panels =
     `<div class="panel" id="panel-results">${renderResults(run.results, run.resultsPath, run.projectUri)}</div>` +
     (run.tests ? `<div class="panel" id="panel-tests">${renderTests(run.tests)}</div>` : "") +
-    (run.model ? `<div class="panel" id="panel-model">${renderModel(run.model)}</div>` : "") +
-    `<div class="panel" id="panel-settings">${renderSettings(run.settings)}</div>`;
+    (run.model ? `<div class="panel" id="panel-model">${renderModel(run.model)}</div>` : "");
 
   const body = `  ${renderTabState(run, active)}
   <div class="brand-rule"></div>
   <header>
     <div class="title-row">
       <h1>${escapeHtml(run.name)}</h1><span class="brand">${escapeHtml(TOOL.label)}</span>
-      ${renderOpenButton(run.projectUri)}
+      ${renderAlert(run.settings)}${renderOpenButton(run.projectUri)}
     </div>
     <div class="path">${escapeHtml(run.resultsPath)}</div>
     ${renderNav(run)}

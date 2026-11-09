@@ -5,7 +5,7 @@ import { renderModel } from "./modelTab";
 import { renderOutputs } from "./outputsSection";
 import { renderParameters } from "./parametersSection";
 import { renderTreatments } from "./treatmentsSection";
-import { renderSettings } from "../../../projectSettings";
+import { renderAlert } from "../../../projectSettings";
 
 export const STYLESHEETS = [
   "theme.css",
@@ -13,7 +13,6 @@ export const STYLESHEETS = [
   "layout.css",
   "cards.css",
   "tables.css",
-  "settings.css",
 ];
 
 function renderOpenButton(projectUri: string): string {
@@ -31,7 +30,7 @@ function renderTabState(summary: Summary, active: string): string {
   const radio = (id: string) =>
     `<input type="radio" name="tab" id="tab-${id}" class="tab-state"` +
     `${active === id ? " checked" : ""}>`;
-  return radio("results") + (summary.model ? radio("model") : "") + radio("settings");
+  return radio("results") + (summary.model ? radio("model") : "");
 }
 
 // Data is a link, not a panel. We use Positron DataExplorer to render it.
@@ -47,7 +46,6 @@ function renderNav(summary: Summary): string {
   if (summary.model) {
     tabs.push('<label class="tab" for="tab-model">Model</label>');
   }
-  tabs.push('<label class="tab" for="tab-settings">Settings</label>');
   return `<nav>${tabs.join("")}</nav>`;
 }
 
@@ -64,15 +62,14 @@ export function renderSummaryPage(
 
   const panels =
     `<div class="panel" id="panel-results">${summaryContent}</div>` +
-    (summary.model ? `<div class="panel" id="panel-model">${renderModel(summary.model)}</div>` : "") +
-    `<div class="panel" id="panel-settings">${renderSettings(summary.settings)}</div>`;
+    (summary.model ? `<div class="panel" id="panel-model">${renderModel(summary.model)}</div>` : "");
 
   const body = `  ${renderTabState(summary, active)}
   <div class="brand-rule"></div>
   <header>
     <div class="title-row">
       <h1>${escapeHtml(summary.name)}</h1><span class="brand">${escapeHtml(TOOL.label)}</span>
-      ${renderOpenButton(summary.projectUri)}
+      ${renderAlert(summary.settings)}${renderOpenButton(summary.projectUri)}
     </div>
     <div class="path">${escapeHtml(summary.path)}</div>
     ${renderNav(summary)}

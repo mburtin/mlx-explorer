@@ -1,11 +1,12 @@
 /**
- * The Settings tab: where a project keeps the files the user brought into it. MonolixSuite
- * can gather them inside the run - `ModelFile/`, `DataFile/`, `ExternalFiles/` - which is
- * what makes a run portable: move the folder and every reference still resolves. A project
- * that instead points at files scattered across the disk breaks as soon as it is shared,
- * and the Model and Data tabs vanish with them.
+ * Include external files: where a project keeps the files the user brought into it.
+ * MonolixSuite can gather them inside the run - `ModelFile/`, `DataFile/`, `ExternalFiles/` -
+ * which is what makes a run portable: move the folder and every reference still resolves. A
+ * project that instead points at files scattered across the disk breaks as soon as it is
+ * shared, and the Model and Data tabs vanish with them.
  *
- * The tab only reports; the Fix button behind it is the one thing here that writes.
+ * The sidebar and the run page only flag such a run; the popup behind the page's alert is
+ * the one thing here that writes.
  */
 
 import * as path from "path";
@@ -18,8 +19,7 @@ import { DeclaredFile, runFolder, Tool, toolFor } from "./modules";
 /** MonolixSuite's own flag for this layout: set, the app keeps it on the next save. */
 const FLAG = "userFilesNextToProject";
 
-/** The tab the page opens on after a fix, so the run page comes back where it was left. */
-const SETTINGS_TAB = "settings";
+const FIX = "Fix";
 
 /** Holds a single dataset: Fix empties it, so a stale copy left there never blocks the new one. */
 const DATA_FOLDER = "DataFile";
@@ -41,15 +41,15 @@ interface Checked {
   target: vscode.Uri;
 }
 
-/** What the tab shows, read off disk once, before any HTML exists. */
+/** What the alert needs, read off disk once, before any HTML exists. */
 export interface Settings {
-  /** Command arguments travel as JSON, so the Fix button carries a string. */
+  /** Command arguments travel as JSON, so the alert carries a string. */
   projectUri: string;
   /** Folder the run exports to, relative to the project folder. */
   runName: string;
   /** How many files the project points at at all. */
   declared: number;
-  /** How many files Fix would gather. Zero leaves the button inert. */
+  /** How many files Fix would gather. Zero means no alert. */
   fixable: number;
   /** Files the project cannot reach, which Fix cannot help with. */
   unreachable: number;
@@ -94,7 +94,7 @@ async function checkAll(
   return { runName, checked };
 }
 
-/** The tab's slice of the page, gathered alongside the other tabs when the page is built. */
+/** Read for the run page and for each sidebar item. */
 export async function readSettings(
   projectUri: vscode.Uri,
   content: string | undefined,
@@ -116,55 +116,35 @@ function plural(count: number): string {
   return count === 1 ? "1 file" : `${count} files`;
 }
 
-/** Whether the parameter needs acting on, and why. */
-function renderStatus(settings: Settings): string {
-  if (settings.declared === 0) {
-    return '<p class="setting-status">This project points at no model or data file.</p>';
-  }
+function outsideText(count: number, runName: string): string {
+  return `${plural(count)} sit outside ${runName}.`;
+}
 
-  if (settings.fixable > 0) {
-    const stuck = settings.unreachable > 0
-      ? ` ${plural(settings.unreachable)} cannot be reached and will be left alone.`
-      : "";
-    const text = `${plural(settings.fixable)} sit outside ${settings.runName}.${stuck}`;
-    return `<p class="setting-status todo">${escapeHtml(text)}</p>`;
-  }
-
-  const text = settings.unreachable > 0
-    ? `${plural(settings.unreachable)} cannot be reached on disk. Repoint them in the application.`
-    : `Everything this project points at is already in ${settings.runName}.`;
-  return `<p class="setting-status">${escapeHtml(text)}</p>`;
+/** What the alert says, or undefined when the run needs no fix. */
+export function alertText(settings: Settings): string | undefined {
+  return settings.fixable > 0 ? outsideText(settings.fixable, settings.runName) : undefined;
 }
 
 /**
- * The action. A command uri, because the CSP here forbids scripts - the same channel the
- * Data tab and the open button use. With nothing to gather it renders as a span: inert,
- * but the row keeps its shape.
+ * The alert beside the open button, absent when there is nothing to gather. A command uri,
+ * because the CSP here forbids scripts - the same channel the Data tab and the open button use.
  */
-function renderControl(settings: Settings): string {
-  if (settings.fixable === 0) {
-    return '<div class="setting-control"><span class="btn-fix disabled">Fix</span></div>';
+export function renderAlert(settings: Settings): string {
+  const text = alertText(settings);
+  if (text === undefined) {
+    return "";
   }
 
   const args = encodeURIComponent(JSON.stringify([settings.projectUri]));
   const href = `command:mlx-explorer.applyProjectFix?${args}`;
-  return `<div class="setting-control">` +
-    `<a class="btn-fix" href="${escapeHtml(href)}">Fix</a></div>`;
-}
-
-/** The tab's one parameter, in a card like the other tabs. */
-export function renderSettings(settings: Settings): string {
-  return `<section class="card">
-    <div class="card-head"><h2>Settings</h2><span class="note">${escapeHtml(settings.runName)}</span></div>
-    <div class="setting">
-      <div class="setting-text">
-        <div class="setting-name">Include external files</div>
-        <p class="setting-desc">Copy and include in the run the model and/or dataset.</p>
-        ${renderStatus(settings)}
-      </div>
-      ${renderControl(settings)}
-    </div>
-  </section>`;
+  // A bubble rather than a title: Positron's webviews don't show native tooltips.
+  const label = escapeHtml(`${text}\nClick to include them in the run.`);
+  return `<a class="btn-alert" href="${escapeHtml(href)}" aria-label="${label}">` +
+    '<svg viewBox="0 0 16 16" aria-hidden="true">' +
+    '<path d="M8 1.8 15 14.2H1Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+    '<path d="M8 6.2v3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<circle cx="8" cy="12.1" r="0.9" fill="currentColor"/></svg>' +
+    `<span class="info-bubble">${label}</span></a>`;
 }
 
 /** The path to write into the project: relative to the project folder, forward slashes. */
@@ -233,8 +213,8 @@ async function syncInternals(
 }
 
 /**
- * Gathers the files the tab listed as outside the run, then reopens the page on the
- * Settings tab so it re-reads from disk and stays where the user was.
+ * Asks before gathering the files the alert flagged as outside the run, then reopens the
+ * page so it re-reads from disk and the alert goes.
  */
 export async function applyProjectFix(target: unknown): Promise<void> {
   const projectUri = vscode.Uri.parse(String(target));
@@ -251,7 +231,25 @@ export async function applyProjectFix(target: unknown): Promise<void> {
   const { runName, checked } = await checkAll(projectUri, content, tool);
   const misplaced = checked.filter((one) => one.state === "misplaced");
   if (misplaced.length === 0) {
-    await vscode.commands.executeCommand(tool.openCommand, projectUri, SETTINGS_TAB);
+    await vscode.commands.executeCommand(tool.openCommand, projectUri);
+    return;
+  }
+
+  const unreachable = checked.filter((one) => one.state === "missing" || one.state === "conflict")
+    .length;
+  const stuck = unreachable > 0
+    ? ` ${plural(unreachable)} cannot be reached and will be left alone.`
+    : "";
+  const choice = await vscode.window.showWarningMessage(
+    outsideText(misplaced.length, runName),
+    {
+      modal: true,
+      detail: "Include external files: copy the model and/or dataset into the run and point " +
+        `the project at the copies. The originals stay where they are.${stuck}`,
+    },
+    FIX
+  );
+  if (choice !== FIX) {
     return;
   }
 
@@ -263,7 +261,7 @@ export async function applyProjectFix(target: unknown): Promise<void> {
     return;
   }
 
-  await vscode.commands.executeCommand(tool.openCommand, projectUri, SETTINGS_TAB);
+  await vscode.commands.executeCommand(tool.openCommand, projectUri);
   await vscode.window.showInformationMessage(
     `Copied ${plural(misplaced.length)} into ${runName}.`
   );

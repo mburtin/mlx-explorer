@@ -26,6 +26,22 @@ h1 { margin: 0; font-size: 1.55em; font-weight: 600; letter-spacing: -0.01em; }
   white-space: nowrap;
 }
 .btn-open:hover { background: var(--vscode-button-hoverBackground); }
+/* Files outside the run: sits just left of the open button, which then drops its auto margin. */
+.btn-alert {
+  margin-left: auto;
+  padding: 5px 6px;
+  border-radius: 4px;
+  color: var(--mlx-warn);
+  font-size: 0.85em;
+  anchor-name: --info;
+  anchor-scope: --info;
+}
+.btn-alert:hover { background: var(--vscode-toolbar-hoverBackground); }
+.btn-alert svg { width: 1.35em; height: 1.35em; vertical-align: -0.3em; }
+.btn-alert + .btn-open { margin-left: 0; }
+/* The bubble from cards.css, grown leftwards: the alert sits near the page's right edge. */
+.btn-alert .info-bubble { left: auto; right: anchor(right); }
+.btn-alert:hover .info-bubble, .btn-alert:focus-visible .info-bubble { display: block; }
 .path {
   margin-top: 5px;
   font-family: var(--vscode-editor-font-family);
@@ -53,16 +69,14 @@ a.tab:hover { color: var(--vscode-foreground); }
 .tab-state { position: absolute; width: 1px; height: 1px; opacity: 0; }
 #tab-results:checked ~ header label[for="tab-results"],
 #tab-tests:checked ~ header label[for="tab-tests"],
-#tab-model:checked ~ header label[for="tab-model"],
-#tab-settings:checked ~ header label[for="tab-settings"] {
+#tab-model:checked ~ header label[for="tab-model"] {
   font-weight: 600;
   color: var(--vscode-foreground);
   border-bottom: 2px solid var(--mlx-accent);
 }
 #tab-results:focus-visible ~ header label[for="tab-results"],
 #tab-tests:focus-visible ~ header label[for="tab-tests"],
-#tab-model:focus-visible ~ header label[for="tab-model"],
-#tab-settings:focus-visible ~ header label[for="tab-settings"] {
+#tab-model:focus-visible ~ header label[for="tab-model"] {
   outline: 1px solid var(--mlx-accent);
   outline-offset: 3px;
 }
@@ -72,5 +86,4 @@ main { padding: 18px 28px 28px 28px; }
 .panel { display: none; flex-direction: column; gap: 16px; }
 #tab-results:checked ~ main #panel-results,
 #tab-tests:checked ~ main #panel-tests,
-#tab-model:checked ~ main #panel-model,
-#tab-settings:checked ~ main #panel-settings { display: flex; }
+#tab-model:checked ~ main #panel-model { display: flex; }

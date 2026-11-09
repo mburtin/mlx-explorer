@@ -11,13 +11,13 @@ import {
 import { ExportOptions } from "./common/exportLink";
 import { exportTable } from "./exportTable";
 import { applyProjectFix } from "./projectSettings";
-import { ProjectsProvider } from "./projectsTree";
-import { editRunIndex } from "./runIndex";
+import { isRunNode, ProjectsProvider, TreeNode } from "./projectsTree";
+import { createGroup, editRunIndex } from "./runIndex";
 import { TOOLS } from "./modules";
 
 interface ToolView {
   readonly provider: ProjectsProvider;
-  readonly view: vscode.TreeView<vscode.Uri>;
+  readonly view: vscode.TreeView<TreeNode>;
 }
 
 async function moveSelection(
@@ -29,18 +29,19 @@ async function moveSelection(
     return;
   }
 
-  const items = await entry.provider.getChildren();
+  const items = await entry.provider.runNodes();
   if (items.length === 0) {
     return;
   }
 
   const current = entry.view.selection[0];
-  const currentIndex = current
-    ? items.findIndex((uri) => uri.toString() === current.toString())
-    : -1;
+  const currentIndex =
+    current !== undefined && isRunNode(current)
+      ? items.findIndex((node) => node.uri.toString() === current.uri.toString())
+      : -1;
   const nextIndex = Math.min(Math.max(currentIndex + args.delta, 0), items.length - 1);
 
-  await entry.view.reveal(items[nextIndex], { select: true, focus: true });
+  await entry.view.reveal(items[nextIndex], { select: true, focus: true, expand: true });
 }
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -56,6 +57,8 @@ export function activate(context: vscode.ExtensionContext): void {
     // handling registered below.
     const view = vscode.window.createTreeView(`mlx-explorer.${tool.id}`, {
       treeDataProvider: provider,
+      dragAndDropController: provider,
+      canSelectMany: true,
     });
     toolViews.set(tool.id, { provider, view });
 
@@ -65,13 +68,21 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
       view,
       view.onDidChangeSelection((e) => {
-        const uri = e.selection[0];
-        if (uri) {
-          vscode.commands.executeCommand(tool.openCommand, uri);
+        // A multi-selection is for dragging runs to a group: only a single run opens
+        const node = e.selection.length === 1 ? e.selection[0] : undefined;
+        if (node !== undefined && isRunNode(node)) {
+          vscode.commands.executeCommand(tool.openCommand, node.uri);
         }
       }),
       vscode.commands.registerCommand(`mlx-explorer.${tool.id}.showRunIndex`, () =>
         openRunIndexPage(context.extensionUri, tool)
+      ),
+      vscode.commands.registerCommand(
+        `mlx-explorer.${tool.id}.createGroup`,
+        async (node?: TreeNode) => {
+          await createGroup(tool, node?.kind === "group" ? node.group : undefined);
+          provider.refresh();
+        }
       ),
       watcher,
       watcher.onDidCreate(() => provider.refresh()),
@@ -83,8 +94,15 @@ export function activate(context: vscode.ExtensionContext): void {
   // Refresh all project lists so every view stays up to date
   const refreshAll = () => providers.forEach((provider) => provider.refresh());
 
+  // Groups and descriptions are hand-edited too: keep both trees in step with the file
+  const runIndexWatcher = vscode.workspace.createFileSystemWatcher("**/mlx-runs.json");
+
   context.subscriptions.push(
     vscode.commands.registerCommand("mlx-explorer.refreshProjects", refreshAll),
+    runIndexWatcher,
+    runIndexWatcher.onDidCreate(refreshAll),
+    runIndexWatcher.onDidChange(refreshAll),
+    runIndexWatcher.onDidDelete(refreshAll),
     vscode.commands.registerCommand(
       "mlx-explorer.openRun",
       (projectUri: vscode.Uri, activeTab?: string) =>

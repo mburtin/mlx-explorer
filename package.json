@@ -2,7 +2,7 @@
   "name": "mlx-explorer",
   "displayName": "MLX Explorer",
   "description": "Visualize MonolixSuite projects in Positron.",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "publisher": "mburtin",
   "license": "Apache-2.0",
   "icon": "media/icons/store.png",
@@ -94,6 +94,18 @@
         "category": "mlx Explorer"
       },
       {
+        "command": "mlx-explorer.monolix.createGroup",
+        "title": "New section",
+        "category": "mlx Explorer",
+        "icon": "$(add)"
+      },
+      {
+        "command": "mlx-explorer.simulx.createGroup",
+        "title": "New section",
+        "category": "mlx Explorer",
+        "icon": "$(add)"
+      },
+      {
         "command": "mlx-explorer.openRun",
         "title": "Open run results",
         "category": "mlx Explorer"
@@ -181,9 +193,29 @@
           "command": "mlx-explorer.refreshProjects",
           "when": "view == mlx-explorer.monolix || view == mlx-explorer.simulx",
           "group": "navigation@1"
+        },
+        {
+          "command": "mlx-explorer.monolix.createGroup",
+          "when": "view == mlx-explorer.monolix",
+          "group": "navigation@2"
+        },
+        {
+          "command": "mlx-explorer.simulx.createGroup",
+          "when": "view == mlx-explorer.simulx",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
+        {
+          "command": "mlx-explorer.monolix.createGroup",
+          "when": "viewItem == monolixGroup",
+          "group": "2_section@1"
+        },
+        {
+          "command": "mlx-explorer.simulx.createGroup",
+          "when": "viewItem == simulxGroup",
+          "group": "2_section@1"
+        },
         {
           "command": "mlx-explorer.openInApp",
           "when": "viewItem == monolixProject || viewItem == simulxProject",
@@ -230,6 +262,14 @@
         },
         {
           "command": "mlx-explorer.editModel",
+          "when": "false"
+        },
+        {
+          "command": "mlx-explorer.monolix.createGroup",
+          "when": "false"
+        },
+        {
+          "command": "mlx-explorer.simulx.createGroup",
           "when": "false"
         }
       ]

@@ -400,7 +400,7 @@ export async function editRunIndex(): Promise<void> {
 
   let index = await readRunIndex();
   for (const tool of TOOLS) {
-    index = await syncRunIndex(tool, await scanProjects(tool.glob, tool.identifies), index);
+    index = await syncRunIndex(tool, await scanProjects(tool.glob, tool.identifies, true), index);
   }
 
   await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.Beside });

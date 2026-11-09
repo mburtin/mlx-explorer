@@ -142,7 +142,7 @@ export async function openRunIndexPage(extensionUri: vscode.Uri, tool: Tool): Pr
 
   const render = async () => {
     const [runs, index] = await Promise.all([
-      scanProjects(tool.glob, tool.identifies),
+      scanProjects(tool.glob, tool.identifies, true),
       readRunIndex(),
     ]);
     const synced = await syncRunIndex(tool, runs, index);

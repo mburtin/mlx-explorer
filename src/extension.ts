@@ -128,7 +128,12 @@ export function activate(context: vscode.ExtensionContext): void {
       "mlx-explorer.moveSelection",
       (args: { toolId: string; delta: number }) => moveSelection(toolViews, args)
     ),
-    vscode.workspace.onDidChangeWorkspaceFolders(refreshAll)
+    vscode.workspace.onDidChangeWorkspaceFolders(refreshAll),
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration("mlx-explorer.excludeArchive")) {
+        refreshAll();
+      }
+    })
   );
 }
 

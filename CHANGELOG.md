@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ## [1.7.0]
+- Add the `mlx-explorer.excludeArchive` setting to ignore the projects stored in an `archive` folder
 - Update the RSE and shrinkage color code: yellow, then orange above 60 %, red above 80 % (RSE yellow now starts at 40 %)
 - Allow to group several runs together.
 

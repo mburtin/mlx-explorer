@@ -311,6 +311,11 @@
     "configuration": {
       "title": "mlx Explorer",
       "properties": {
+        "mlx-explorer.excludeArchive": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Ignore the projects stored in a folder named `archive`, in the project lists and in the run descriptions."
+        },
         "mlx-explorer.export.ink": {
           "type": "string",
           "enum": [

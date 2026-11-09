@@ -12,6 +12,7 @@ import { ExportOptions } from "./common/exportLink";
 import { exportTable } from "./exportTable";
 import { applyProjectFix } from "./projectSettings";
 import { isRunNode, ProjectsProvider, TreeNode } from "./projectsTree";
+import { renameRun } from "./renameRun";
 import { createGroup, editRunIndex } from "./runIndex";
 import { TOOLS } from "./modules";
 
@@ -119,6 +120,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("mlx-explorer.openData", openDataExplorer),
     vscode.commands.registerCommand("mlx-explorer.editModel", editModel),
     vscode.commands.registerCommand("mlx-explorer.editRunIndex", editRunIndex),
+    vscode.commands.registerCommand("mlx-explorer.renameRun", async (node?: TreeNode) => {
+      if (node !== undefined && isRunNode(node)) {
+        await renameRun(node);
+        refreshAll();
+      }
+    }),
     vscode.commands.registerCommand(
       "mlx-explorer.exportTable",
       (projectUri: string, section: string, setName?: string | null, options?: ExportOptions) =>

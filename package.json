@@ -126,6 +126,11 @@
         "category": "mlx Explorer"
       },
       {
+        "command": "mlx-explorer.renameRun",
+        "title": "Rename run",
+        "category": "mlx Explorer"
+      },
+      {
         "command": "mlx-explorer.openData",
         "title": "Open project dataset",
         "category": "mlx Explorer"
@@ -225,6 +230,11 @@
           "command": "mlx-explorer.openInFolder",
           "when": "viewItem == monolixProject || viewItem == simulxProject",
           "group": "1_open@2"
+        },
+        {
+          "command": "mlx-explorer.renameRun",
+          "when": "viewItem == monolixProject || viewItem == simulxProject",
+          "group": "2_run@1"
         }
       ],
       "commandPalette": [
@@ -242,6 +252,10 @@
         },
         {
           "command": "mlx-explorer.openInFolder",
+          "when": "false"
+        },
+        {
+          "command": "mlx-explorer.renameRun",
           "when": "false"
         },
         {

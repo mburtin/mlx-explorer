@@ -201,6 +201,50 @@ export async function moveRunToGroup(
   return { tools };
 }
 
+// Carries the description and the group memberships of a renamed project file over to
+// its new key. Nothing is written when the file never described the run.
+export async function renameRunKey(oldKey: string, newKey: string): Promise<void> {
+  const index = await readRunIndex();
+  const uri = runIndexUri();
+  if (!uri || index.error) {
+    return;
+  }
+
+  const present = Object.values(index.tools).some(
+    (runs) =>
+      runs !== undefined &&
+      ((oldKey in runs.entries) || runs.groups.some((group) => group.runs.includes(oldKey)))
+  );
+  if (!present) {
+    return;
+  }
+
+  const tools: Record<string, ToolRuns> = {};
+  for (const [id, runs] of Object.entries(index.tools)) {
+    if (!runs) {
+      continue;
+    }
+
+    const entries: Record<string, string> = {};
+    const renamed = runs.entries[oldKey];
+    for (const [key, description] of Object.entries(runs.entries)) {
+      if (key === oldKey) {
+        entries[newKey] = description;
+      } else if (key !== newKey || renamed === undefined) {
+        entries[key] = description;
+      }
+    }
+
+    const groups = runs.groups.map((group) => ({
+      name: group.name,
+      runs: group.runs.map((key) => (key === oldKey ? newKey : key)),
+    }));
+    tools[id] = { entries, groups };
+  }
+
+  await writeRunIndex(uri, tools);
+}
+
 // Prompts for the name of a new empty group, inserted after the group named `after`
 // when there is one, at the end of the list otherwise.
 export async function createGroup(tool: Tool, after?: string): Promise<void> {

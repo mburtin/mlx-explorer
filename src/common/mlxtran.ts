@@ -99,6 +99,29 @@ export function replaceFileValue(
 }
 
 /**
+ * Repoints every single-quoted path that lies inside the folder `from` to the folder `to`.
+ * Renaming a run folder uses it for the paths the project gathers there, whatever
+ * separator style the file uses. Values merely equal to the folder name are left alone:
+ * they can be identifiers, not paths.
+ */
+export function replaceFolderPath(content: string, from: string, to: string): string {
+  const normalizedFrom = from.replace(/\\/g, "/");
+  if (normalizedFrom === "") {
+    return content;
+  }
+  const normalizedTo = to.replace(/\\/g, "/");
+
+  return content.replace(/'([^']*)'/g, (match, value: string) => {
+    const normalized = value.replace(/\\/g, "/");
+    if (!normalized.startsWith(`${normalizedFrom}/`)) {
+      return match;
+    }
+    const target = value.includes("\\") ? normalizedTo.replace(/\//g, "\\") : normalizedTo;
+    return `'${target}${value.slice(normalizedFrom.length)}'`;
+  });
+}
+
+/**
  * Sets a bare `key=value` line in `[SETTINGS] GLOBAL:`, adding it under the marker when
  * the project does not declare it yet. A project without a `GLOBAL:` marker is returned
  * unchanged: writing the setting would mean inventing the block that holds it.
@@ -114,6 +137,13 @@ export function setGlobalSetting(content: string, key: string, value: string): s
 // The value of a quoted `key = '...'` setting
 export function quotedValue(content: string, key: string): string | undefined {
   return new RegExp(`^${key}\\s*=\\s*'([^']*)'`, "m").exec(content)?.[1];
+}
+
+// Replaces the value of a quoted `key = '...'` setting, leaving the line untouched when
+// the project does not declare it
+export function replaceQuotedValue(content: string, key: string, replacement: string): string {
+  const pattern = new RegExp(`^(\\s*${literal(key)}\\s*=\\s*)'[^']*'`, "m");
+  return content.replace(pattern, (_match, prefix: string) => `${prefix}'${replacement}'`);
 }
 
 /** Folder the project exports to, relative to the project folder. Same key in every tool. */
